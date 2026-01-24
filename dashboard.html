@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>METR Benchmark Dashboard</title>
+    <title>Measuring AI Ability to Complete Long Tasks | METR</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <style>
@@ -301,16 +301,16 @@
 <body>
     <div class="container">
         <header>
-            <h1>METR Benchmark Dashboard</h1>
-            <p class="subtitle">AI capability horizons with rigorous uncertainty quantification</p>
+            <h1>Measuring AI Ability to Complete Long Tasks</h1>
+            <p class="subtitle">Tracking AI agent time horizons — the amount of human work (on software/research tasks) that models can reliably automate</p>
         </header>
 
         <div class="controls">
             <div class="control-group">
-                <label>Horizon Type</label>
+                <label>Success Rate Threshold</label>
                 <select id="horizonType">
-                    <option value="p50">50% Success (Median)</option>
-                    <option value="p80">80% Success</option>
+                    <option value="p50">50% Success Rate</option>
+                    <option value="p80">80% Success Rate</option>
                 </select>
             </div>
 
@@ -358,21 +358,22 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Fitted Doubling Time</h3>
+                <h3>Time Horizon Doubling Rate</h3>
                 <div class="stat-value" id="doublingTime">—</div>
                 <div class="stat-ci" id="doublingTimeCI"></div>
                 <div class="stat-detail" id="doublingTimeDetail"></div>
+                <div class="stat-detail" style="margin-top: 0.25rem; font-style: italic;">Trend slope is more robust than individual model estimates</div>
             </div>
 
             <div class="stat-card">
-                <h3>Model Fit Quality</h3>
+                <h3>Exponential Fit Quality</h3>
                 <div class="stat-value" id="rSquared">—</div>
                 <div class="stat-ci" id="modelComparison"></div>
                 <div class="stat-detail" id="fitDetail"></div>
             </div>
 
             <div class="stat-card">
-                <h3>Current Frontier</h3>
+                <h3>Current Frontier Time Horizon</h3>
                 <div class="stat-value" id="currentHorizon">—</div>
                 <div class="stat-ci" id="currentModel"></div>
                 <div class="stat-detail" id="currentDetail"></div>
@@ -387,9 +388,9 @@
         </div>
 
         <div class="calculator-section">
-            <h2>Custom Doubling Time Scenarios</h2>
+            <h2>Custom Growth Scenarios</h2>
             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
-                Add custom doubling times to compare against the fitted trend. Enter 0 to disable.
+                Compare alternative doubling rates against the fitted trend. Enter 0 to disable a scenario.
             </p>
             <div class="custom-scenarios">
                 <div class="scenario-input">
@@ -411,7 +412,10 @@
         </div>
 
         <div class="calculator-section">
-            <h2>Doubling Time Calculator</h2>
+            <h2>Implied Doubling Time Calculator</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                Calculate the implied doubling rate from observed time horizon improvements.
+            </p>
 
             <div class="tabs">
                 <button class="tab active" data-tab="models">Between Models</button>
@@ -448,21 +452,21 @@
         </div>
 
         <div class="calculator-section">
-            <h2>Milestone Calculator</h2>
+            <h2>Time Horizon Milestone Calculator</h2>
             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
-                When will AI reach a target capability horizon?
+                When will AI reliably complete tasks that take humans a given amount of time?
             </p>
             <div class="calc-row">
                 <div class="control-group">
-                    <label>Target Horizon</label>
+                    <label>Target Task Duration (Human Time)</label>
                     <select id="targetHorizon">
-                        <option value="1">1 hour</option>
-                        <option value="4">4 hours</option>
-                        <option value="8" selected>8 hours (1 workday)</option>
-                        <option value="24">1 day</option>
-                        <option value="48">2 days</option>
-                        <option value="168">1 week</option>
-                        <option value="720">1 month</option>
+                        <option value="1">1 hour task</option>
+                        <option value="4">4 hour task</option>
+                        <option value="8" selected>8 hour task (1 workday)</option>
+                        <option value="24">1 day task</option>
+                        <option value="48">2 day task</option>
+                        <option value="168">1 week task</option>
+                        <option value="720">1 month task</option>
                     </select>
                 </div>
             </div>
@@ -470,9 +474,11 @@
         </div>
 
         <div class="calculator-section">
-            <h2>Statistical Methodology</h2>
+            <h2>Methodology & Limitations</h2>
             <div style="font-size: 0.85rem; color: #64748b; line-height: 1.7;">
-                <p><strong>Weighted Least Squares:</strong> Each model is weighted by the inverse variance of its horizon estimate (derived from 95% CI). Models with tighter confidence intervals have more influence on the fit.</p>
+                <p><strong>Time Horizon:</strong> The amount of serial human labor (on software/research tasks) that AI can replace at the selected success rate. A 50% time horizon of 4 hours means the model succeeds 50% of the time on tasks that take skilled humans 4 hours to complete.</p>
+                <p style="margin-top: 0.75rem;"><strong>Key Limitations:</strong> Individual model estimates have wide confidence intervals (~2x in each direction). Performance varies dramatically across domains — these benchmarks focus on software and research tasks. The long-term trend slope is more robust than specific model measurements. Success rates don't directly translate to automation viability; reliability-critical applications may require 98%+ accuracy. See <a href="https://metr.org/notes/2026-01-22-time-horizon-limitations/" target="_blank" style="color: #3b82f6;">METR's detailed limitations notes</a>.</p>
+                <p style="margin-top: 0.75rem;"><strong>Weighted Least Squares:</strong> Each model is weighted by the inverse variance of its horizon estimate (derived from 95% CI). Models with tighter confidence intervals have more influence on the fit.</p>
                 <p style="margin-top: 0.75rem;"><strong>Bootstrap Confidence Intervals:</strong> 2000 bootstrap resamples are used to estimate uncertainty in the doubling time and trendline. The 95% CI represents the 2.5th and 97.5th percentiles of the bootstrap distribution.</p>
                 <p style="margin-top: 0.75rem;"><strong>Prediction Intervals:</strong> The shaded projection region combines trend uncertainty (from bootstrap) with residual variance, giving proper prediction intervals for future observations.</p>
                 <p style="margin-top: 0.75rem;"><strong>Model Comparison:</strong> Exponential and linear models are compared using AIC (Akaike Information Criterion). Lower AIC indicates better fit accounting for model complexity.</p>
@@ -490,7 +496,7 @@
                                 <th style="text-align: left; padding: 0.5rem; color: #64748b;">Model</th>
                                 <th style="text-align: left; padding: 0.5rem; color: #64748b;">Family</th>
                                 <th style="text-align: left; padding: 0.5rem; color: #64748b;">Release Date</th>
-                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Horizon</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Time Horizon</th>
                                 <th style="text-align: right; padding: 0.5rem; color: #64748b;">95% CI</th>
                             </tr>
                         </thead>
@@ -503,8 +509,9 @@
 
         <footer>
             <div style="margin-bottom: 0.75rem;">
-                Data source: <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">METR Benchmark Results</a>
-                · Benchmark: METR-Horizon-v1
+                Based on <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">"Measuring AI Ability to Complete Long Tasks"</a> by METR
+                · <a href="https://metr.org/notes/2026-01-22-time-horizon-limitations/" target="_blank">Limitations</a>
+                · <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">Raw Data</a>
             </div>
             <details style="display: inline-block; text-align: left;">
                 <summary style="cursor: pointer;">Citation</summary>
@@ -1068,7 +1075,7 @@
 
         const layout = {
             title: {
-                text: 'Frontier AI Capability Horizons',
+                text: 'AI Agent Time Horizons Over Time',
                 font: { size: 18 }
             },
             xaxis: {
@@ -1077,7 +1084,7 @@
                 range: [new Date(2019, 0, 1), new Date(endYear, 11, 31)]
             },
             yaxis: {
-                title: 'Time Horizon (hours)',
+                title: 'Time Horizon (human expert time)',
                 type: 'log',
                 gridcolor: 'rgba(128,128,128,0.2)',
                 tickvals: [1/3600, 1/60, 1/6, 0.5, 1, 2, 4, 8, 24, 48, 168, 720],
