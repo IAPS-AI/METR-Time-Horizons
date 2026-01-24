@@ -2,6 +2,23 @@
 
 This repository contains the analysis code and data for METR's time horizon methodology, as described in ["Measuring AI Ability to Complete Long Tasks"](https://arxiv.org/abs/2503.14499).
 
+## Interactive Dashboard
+
+**[View the live dashboard →](https://metr.theo-bearman.com)**
+
+An interactive dashboard for exploring AI capability horizons with rigorous statistical analysis:
+
+- **Weighted Least Squares Regression** — Models weighted by inverse variance from confidence intervals
+- **Bootstrap Confidence Intervals** — 2000 resamples for uncertainty quantification on doubling times
+- **Proper Prediction Intervals** — Combines trend uncertainty with residual variance
+- **Model Comparison** — Exponential vs linear fit comparison via AIC
+- **Out-of-Sample Validation** — Tests predictions on held-out recent models
+- **Custom Scenarios** — Input your own doubling time assumptions to compare projections
+- **Milestone Calculator** — Estimate when AI will reach target capability horizons
+- **Doubling Time Calculator** — Compute implied doubling times between any two models or dates
+
+The dashboard pulls data from [METR's benchmark results](https://metr.org/assets/benchmark_results.yaml) and updates daily via GitHub Actions.
+
 ## Overview
 
 The time horizon methodology measures AI agent capabilities by:
