@@ -292,6 +292,10 @@
         footer a:hover {
             text-decoration: underline;
         }
+
+        #rawDataBody tr:hover {
+            background: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -476,11 +480,33 @@
             </div>
         </div>
 
+        <div class="calculator-section">
+            <details>
+                <summary style="cursor: pointer; font-weight: 600; color: #0f172a;">Raw Data</summary>
+                <div style="margin-top: 1rem; overflow-x: auto;">
+                    <table id="rawDataTable" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e2e8f0;">
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Model</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Family</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Release Date</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Horizon</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">95% CI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rawDataBody">
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
         <footer>
-            Data source: <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">METR Benchmark Results</a>
-            · Benchmark: METR-Horizon-v1
-            <br><br>
-            <details style="text-align: left; max-width: 500px; margin: 0 auto;">
+            <div style="margin-bottom: 0.75rem;">
+                Data source: <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">METR Benchmark Results</a>
+                · Benchmark: METR-Horizon-v1
+            </div>
+            <details style="display: inline-block; text-align: left;">
                 <summary style="cursor: pointer;">Citation</summary>
                 <pre style="background: #f1f5f9; padding: 1rem; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; text-align: left; margin-top: 0.5rem;">@article{metr2025horizon,
   title={Measuring AI Ability to Complete Long Tasks},
@@ -1232,6 +1258,31 @@
         resultDiv.style.display = 'block';
     }
 
+    function updateRawDataTable(data) {
+        const tbody = document.getElementById('rawDataBody');
+
+        // Sort by date descending (newest first)
+        const sorted = [...data].sort((a, b) => b.date - a.date);
+
+        tbody.innerHTML = sorted.map(d => {
+            const color = FAMILY_COLORS[d.family] || '#999';
+            return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 0.5rem; font-weight: 500;">${d.name}</td>
+                    <td style="padding: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></span>
+                            ${d.family}
+                        </span>
+                    </td>
+                    <td style="padding: 0.5rem;">${formatDate(d.date)}</td>
+                    <td style="padding: 0.5rem; text-align: right; font-family: monospace;">${formatHours(d.horizon)}</td>
+                    <td style="padding: 0.5rem; text-align: right; font-family: monospace; color: #64748b;">[${formatHours(d.ciLow)}, ${formatHours(d.ciHigh)}]</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     function updateMilestoneCalc(analysis, data) {
         const targetHours = parseFloat(document.getElementById('targetHorizon').value);
         const latest = data[data.length - 1];
@@ -1391,6 +1442,7 @@
         updateModelSelectors(allData);
         updateModelCalc(allData, horizonType);
         updateMilestoneCalc(currentAnalysis, fitData);
+        updateRawDataTable(allData);
     }
 
     // Event listeners
