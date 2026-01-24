@@ -1340,8 +1340,10 @@
             if (customDT > 0) {
                 const customDays = customDT * Math.log2(targetHours / currentHorizon);
                 const customDate = new Date(latest.date.getTime() + customDays * 24 * 60 * 60 * 1000);
+                const customDaysFromNow = Math.round((customDate - new Date()) / (1000 * 60 * 60 * 24));
+                const daysText = customDaysFromNow > 0 ? ` (~${customDaysFromNow} days)` : '';
                 html += `<br><span style="color: ${colors[i]}; font-weight: 500;">
-                    Custom ${customDT}d: ${customDate.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}
+                    Custom ${customDT}d: ${customDate.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}${daysText}
                 </span>`;
             }
         });
