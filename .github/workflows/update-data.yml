@@ -1,0 +1,37 @@
+name: Update Benchmark Data
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest benchmark data
+        run: |
+          curl -s https://metr.org/assets/benchmark_results.yaml -o benchmark_results.yaml
+
+      - name: Check if data changed
+        id: check
+        run: |
+          if git diff --quiet benchmark_results.yaml; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if changed
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add benchmark_results.yaml
+          git commit -m "Update benchmark data $(date -u +'%Y-%m-%d')"
+          git push

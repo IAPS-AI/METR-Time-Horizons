@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METR Benchmark Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            min-width: 140px;
+        }
+
+        .control-group input[type="number"] {
+            width: 100px;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 1.25rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .checkbox-group label {
+            font-size: 0.85rem;
+            color: #475569;
+            text-transform: none;
+        }
+
+        #plot {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .stat-ci {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .stat-detail {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .model-comparison {
+            color: #16a34a;
+            font-weight: 500;
+        }
+
+        .calculator-section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .calculator-section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+
+        .calc-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .calc-result {
+            padding: 1rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .calc-result.warning {
+            background: #fefce8;
+            border-color: #fef08a;
+        }
+
+        .calc-result strong {
+            color: #166534;
+        }
+
+        .calc-result.warning strong {
+            color: #a16207;
+        }
+
+        .custom-scenarios {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .scenario-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-input input {
+            width: 80px;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .scenario-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .tab:hover {
+            background: #f8fafc;
+        }
+
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        .methodology {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>METR Benchmark Dashboard</h1>
+            <p class="subtitle">AI capability horizons with rigorous uncertainty quantification</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Horizon Type</label>
+                <select id="horizonType">
+                    <option value="p50">50% Success (Median)</option>
+                    <option value="p80">80% Success</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Fit Data From</label>
+                <select id="fitStartDate">
+                    <option value="2019-01-01">2019</option>
+                    <option value="2020-01-01" selected>2020</option>
+                    <option value="2021-01-01">2021</option>
+                    <option value="2022-01-01">2022</option>
+                    <option value="2023-01-01">2023</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Project Until</label>
+                <select id="endYear">
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028" selected>2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="showCI" checked>
+                <label for="showCI">Show confidence intervals</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="showProjection" checked>
+                <label for="showProjection">Show projection</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="showBootstrap" checked>
+                <label for="showBootstrap">Bootstrap uncertainty</label>
+            </div>
+        </div>
+
+        <div id="plot">
+            <div class="loading">Loading benchmark data...</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Fitted Doubling Time</h3>
+                <div class="stat-value" id="doublingTime">—</div>
+                <div class="stat-ci" id="doublingTimeCI"></div>
+                <div class="stat-detail" id="doublingTimeDetail"></div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Model Fit Quality</h3>
+                <div class="stat-value" id="rSquared">—</div>
+                <div class="stat-ci" id="modelComparison"></div>
+                <div class="stat-detail" id="fitDetail"></div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Current Frontier</h3>
+                <div class="stat-value" id="currentHorizon">—</div>
+                <div class="stat-ci" id="currentModel"></div>
+                <div class="stat-detail" id="currentDetail"></div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Out-of-Sample Test</h3>
+                <div class="stat-value" id="oosTest">—</div>
+                <div class="stat-ci" id="oosDetail"></div>
+                <div class="stat-detail">Predicting last 3 models from earlier data</div>
+            </div>
+        </div>
+
+        <div class="calculator-section">
+            <h2>Custom Doubling Time Scenarios</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                Add custom doubling times to compare against the fitted trend. Enter 0 to disable.
+            </p>
+            <div class="custom-scenarios">
+                <div class="scenario-input">
+                    <span class="scenario-color" style="background: #e11d48;"></span>
+                    <input type="number" id="custom1" placeholder="days" min="0" max="1000" value="0">
+                    <span style="font-size: 0.8rem; color: #64748b;">days</span>
+                </div>
+                <div class="scenario-input">
+                    <span class="scenario-color" style="background: #7c3aed;"></span>
+                    <input type="number" id="custom2" placeholder="days" min="0" max="1000" value="0">
+                    <span style="font-size: 0.8rem; color: #64748b;">days</span>
+                </div>
+                <div class="scenario-input">
+                    <span class="scenario-color" style="background: #059669;"></span>
+                    <input type="number" id="custom3" placeholder="days" min="0" max="1000" value="0">
+                    <span style="font-size: 0.8rem; color: #64748b;">days</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculator-section">
+            <h2>Doubling Time Calculator</h2>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="models">Between Models</button>
+                <button class="tab" data-tab="dates">Between Dates</button>
+            </div>
+
+            <div id="models-tab" class="tab-content active">
+                <div class="calc-row">
+                    <div class="control-group">
+                        <label>Earlier Model</label>
+                        <select id="model1"></select>
+                    </div>
+                    <div class="control-group">
+                        <label>Later Model</label>
+                        <select id="model2"></select>
+                    </div>
+                </div>
+                <div id="modelCalcResult" class="calc-result" style="display: none;"></div>
+            </div>
+
+            <div id="dates-tab" class="tab-content">
+                <div class="calc-row">
+                    <div class="control-group">
+                        <label>Start Date</label>
+                        <input type="date" id="calcStartDate">
+                    </div>
+                    <div class="control-group">
+                        <label>End Date</label>
+                        <input type="date" id="calcEndDate">
+                    </div>
+                </div>
+                <div id="dateCalcResult" class="calc-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="calculator-section">
+            <h2>Milestone Calculator</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                When will AI reach a target capability horizon?
+            </p>
+            <div class="calc-row">
+                <div class="control-group">
+                    <label>Target Horizon</label>
+                    <select id="targetHorizon">
+                        <option value="1">1 hour</option>
+                        <option value="4">4 hours</option>
+                        <option value="8" selected>8 hours (1 workday)</option>
+                        <option value="24">1 day</option>
+                        <option value="48">2 days</option>
+                        <option value="168">1 week</option>
+                        <option value="720">1 month</option>
+                    </select>
+                </div>
+            </div>
+            <div id="milestoneResult" class="calc-result" style="display: none;"></div>
+        </div>
+
+        <div class="calculator-section">
+            <h2>Statistical Methodology</h2>
+            <div style="font-size: 0.85rem; color: #64748b; line-height: 1.7;">
+                <p><strong>Weighted Least Squares:</strong> Each model is weighted by the inverse variance of its horizon estimate (derived from 95% CI). Models with tighter confidence intervals have more influence on the fit.</p>
+                <p style="margin-top: 0.75rem;"><strong>Bootstrap Confidence Intervals:</strong> 2000 bootstrap resamples are used to estimate uncertainty in the doubling time and trendline. The 95% CI represents the 2.5th and 97.5th percentiles of the bootstrap distribution.</p>
+                <p style="margin-top: 0.75rem;"><strong>Prediction Intervals:</strong> The shaded projection region combines trend uncertainty (from bootstrap) with residual variance, giving proper prediction intervals for future observations.</p>
+                <p style="margin-top: 0.75rem;"><strong>Model Comparison:</strong> Exponential and linear models are compared using AIC (Akaike Information Criterion). Lower AIC indicates better fit accounting for model complexity.</p>
+                <p style="margin-top: 0.75rem;"><strong>Out-of-Sample Validation:</strong> The model is re-fit excluding the most recent 3 models, then tested on how well it predicts those held-out observations.</p>
+            </div>
+        </div>
+
+        <footer>
+            Data source: <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">METR Benchmark Results</a>
+            · Benchmark: METR-Horizon-v1
+        </footer>
+    </div>
+
+    <script>
+    // ============================================
+    // STATISTICAL FUNCTIONS
+    // ============================================
+
+    /**
+     * Weighted linear regression
+     * @param {number[]} x - Independent variable
+     * @param {number[]} y - Dependent variable
+     * @param {number[]} weights - Weights for each observation
+     * @returns {Object} - {slope, intercept, rSquared, residuals, yHat}
+     */
+    function weightedLinearRegression(x, y, weights = null) {
+        const n = x.length;
+        if (!weights) {
+            weights = new Array(n).fill(1);
+        }
+
+        const sumW = weights.reduce((a, b) => a + b, 0);
+        const sumWX = x.reduce((sum, xi, i) => sum + weights[i] * xi, 0);
+        const sumWY = y.reduce((sum, yi, i) => sum + weights[i] * yi, 0);
+        const sumWXY = x.reduce((sum, xi, i) => sum + weights[i] * xi * y[i], 0);
+        const sumWX2 = x.reduce((sum, xi, i) => sum + weights[i] * xi * xi, 0);
+
+        const meanX = sumWX / sumW;
+        const meanY = sumWY / sumW;
+
+        const slope = (sumWXY - sumW * meanX * meanY) / (sumWX2 - sumW * meanX * meanX);
+        const intercept = meanY - slope * meanX;
+
+        // Calculate R-squared
+        const yHat = x.map(xi => slope * xi + intercept);
+        const ssRes = y.reduce((sum, yi, i) => sum + weights[i] * Math.pow(yi - yHat[i], 2), 0);
+        const ssTot = y.reduce((sum, yi, i) => sum + weights[i] * Math.pow(yi - meanY, 2), 0);
+        const rSquared = 1 - ssRes / ssTot;
+
+        const residuals = y.map((yi, i) => yi - yHat[i]);
+        const rmse = Math.sqrt(ssRes / sumW);
+
+        return { slope, intercept, rSquared, residuals, yHat, rmse };
+    }
+
+    /**
+     * Calculate AIC for model comparison
+     */
+    function calculateAIC(n, rss, k) {
+        // AIC = n * ln(RSS/n) + 2k
+        return n * Math.log(rss / n) + 2 * k;
+    }
+
+    /**
+     * Bootstrap resampling for confidence intervals
+     * @param {Object[]} data - Array of data points
+     * @param {Function} statFn - Function that computes statistic from data
+     * @param {number} nBootstrap - Number of bootstrap samples
+     * @returns {Object} - {estimate, ci95, distribution}
+     */
+    function bootstrap(data, statFn, nBootstrap = 2000) {
+        const n = data.length;
+        const bootstrapStats = [];
+
+        for (let b = 0; b < nBootstrap; b++) {
+            // Resample with replacement
+            const sample = [];
+            for (let i = 0; i < n; i++) {
+                const idx = Math.floor(Math.random() * n);
+                sample.push(data[idx]);
+            }
+
+            try {
+                const stat = statFn(sample);
+                if (isFinite(stat)) {
+                    bootstrapStats.push(stat);
+                }
+            } catch (e) {
+                // Skip failed iterations
+            }
+        }
+
+        bootstrapStats.sort((a, b) => a - b);
+
+        const estimate = statFn(data);
+        const ci95Low = bootstrapStats[Math.floor(bootstrapStats.length * 0.025)];
+        const ci95High = bootstrapStats[Math.floor(bootstrapStats.length * 0.975)];
+
+        return {
+            estimate,
+            ci95: [ci95Low, ci95High],
+            distribution: bootstrapStats
+        };
+    }
+
+    /**
+     * Compute doubling time from data
+     */
+    function computeDoublingTime(data) {
+        const x = data.map(d => d.dateNum);
+        const y = data.map(d => Math.log(d.horizon));
+        const weights = data.map(d => d.weight);
+
+        const reg = weightedLinearRegression(x, y, weights);
+        const doublingTime = Math.log(2) / reg.slope;
+
+        return doublingTime;
+    }
+
+    /**
+     * Full regression analysis with bootstrap
+     */
+    function analyzeData(data, nBootstrap = 2000) {
+        // Prepare data
+        const x = data.map(d => d.dateNum);
+        const y = data.map(d => Math.log(d.horizon));
+        const weights = data.map(d => d.weight);
+
+        // Fit weighted regression
+        const expReg = weightedLinearRegression(x, y, weights);
+        const doublingTime = Math.log(2) / expReg.slope;
+
+        // Also fit linear model for comparison
+        const yLinear = data.map(d => d.horizon);
+        const linearReg = weightedLinearRegression(x, yLinear, weights);
+
+        // Calculate AIC for model comparison
+        const n = data.length;
+        const rssExp = expReg.residuals.reduce((sum, r, i) => sum + weights[i] * r * r, 0);
+        const rssLinear = linearReg.residuals.reduce((sum, r, i) => sum + weights[i] * r * r, 0);
+        const aicExp = calculateAIC(n, rssExp, 2);
+        const aicLinear = calculateAIC(n, rssLinear, 2);
+
+        // Bootstrap for doubling time CI
+        const bootstrapResult = bootstrap(data, computeDoublingTime, nBootstrap);
+
+        // Bootstrap for trendline uncertainty
+        const trendlineBootstrap = [];
+        for (let b = 0; b < Math.min(500, nBootstrap); b++) {
+            const sample = [];
+            for (let i = 0; i < n; i++) {
+                const idx = Math.floor(Math.random() * n);
+                sample.push(data[idx]);
+            }
+            const bx = sample.map(d => d.dateNum);
+            const by = sample.map(d => Math.log(d.horizon));
+            const bw = sample.map(d => d.weight);
+            const bReg = weightedLinearRegression(bx, by, bw);
+            trendlineBootstrap.push(bReg);
+        }
+
+        return {
+            regression: expReg,
+            linearRegression: linearReg,
+            doublingTime: {
+                estimate: doublingTime,
+                ci95: bootstrapResult.ci95,
+                distribution: bootstrapResult.distribution
+            },
+            modelComparison: {
+                exponentialAIC: aicExp,
+                linearAIC: aicLinear,
+                preferExponential: aicExp < aicLinear
+            },
+            trendlineBootstrap,
+            residualStd: expReg.rmse
+        };
+    }
+
+    /**
+     * Out-of-sample validation
+     */
+    function outOfSampleTest(data, nHoldout = 3) {
+        if (data.length <= nHoldout + 3) {
+            return null;
+        }
+
+        // Sort by date
+        const sorted = [...data].sort((a, b) => a.dateNum - b.dateNum);
+        const trainData = sorted.slice(0, -nHoldout);
+        const testData = sorted.slice(-nHoldout);
+
+        // Fit on training data
+        const x = trainData.map(d => d.dateNum);
+        const y = trainData.map(d => Math.log(d.horizon));
+        const weights = trainData.map(d => d.weight);
+        const reg = weightedLinearRegression(x, y, weights);
+
+        // Predict on test data
+        const predictions = testData.map(d => ({
+            actual: d.horizon,
+            predicted: Math.exp(reg.slope * d.dateNum + reg.intercept),
+            model: d.name
+        }));
+
+        // Calculate MAPE (Mean Absolute Percentage Error)
+        const mape = predictions.reduce((sum, p) =>
+            sum + Math.abs(p.actual - p.predicted) / p.actual, 0) / predictions.length;
+
+        // Check if actuals fall within prediction interval
+        const residualStd = reg.rmse;
+        const withinInterval = predictions.filter(p => {
+            const logPred = Math.log(p.predicted);
+            const logActual = Math.log(p.actual);
+            return Math.abs(logActual - logPred) < 1.96 * residualStd;
+        }).length;
+
+        return {
+            mape,
+            coverage: withinInterval / predictions.length,
+            predictions
+        };
+    }
+
+    // ============================================
+    // DATA PROCESSING
+    // ============================================
+
+    const MODEL_NAMES = {
+        "claude_3_5_sonnet": "Claude 3.5 Sonnet",
+        "claude_3_5_sonnet_20241022": "Claude 3.5 Sonnet (Oct 2024)",
+        "claude_3_7_sonnet": "Claude 3.7 Sonnet",
+        "claude_3_opus": "Claude 3 Opus",
+        "claude_4_opus": "Claude 4 Opus",
+        "claude_4_1_opus": "Claude 4.1 Opus",
+        "claude_4_sonnet": "Claude 4 Sonnet",
+        "claude_sonnet_4_5": "Claude Sonnet 4.5",
+        "claude_opus_4_5": "Claude Opus 4.5",
+        "gpt2": "GPT-2",
+        "gpt_3_5_turbo_instruct": "GPT-3.5 Turbo Instruct",
+        "gpt_4": "GPT-4",
+        "gpt_4_0125": "GPT-4 (Jan 2024)",
+        "gpt_4_1106": "GPT-4 Turbo (Nov 2023)",
+        "gpt_4_turbo": "GPT-4 Turbo",
+        "gpt_4o": "GPT-4o",
+        "gpt_5": "GPT-5",
+        "gpt_5_1_codex_max": "GPT-5.1 Codex Max",
+        "gpt-oss-120b": "GPT-OSS-120B",
+        "o1_preview": "o1 Preview",
+        "o1_elicited": "o1 (Elicited)",
+        "o3": "o3",
+        "o4-mini": "o4-mini",
+        "davinci_002": "Davinci-002",
+        "deepseek_r1": "DeepSeek R1",
+        "deepseek_r1_0528": "DeepSeek R1 (May 2025)",
+        "deepseek_v3": "DeepSeek V3",
+        "deepseek_v3_0324": "DeepSeek V3 (Mar 2025)",
+        "gemini_2_5_pro_preview": "Gemini 2.5 Pro Preview",
+        "grok_4": "Grok 4",
+        "kimi_k2_thinking": "Kimi K2 Thinking",
+        "qwen_2_5_72b": "Qwen 2.5 72B",
+        "qwen_2_72b": "Qwen 2 72B",
+    };
+
+    const FAMILY_COLORS = {
+        "Anthropic": "#d97757",
+        "OpenAI": "#18a683",
+        "DeepSeek": "#5B8FF9",
+        "Google": "#F6BD16",
+        "Alibaba": "#E8684A",
+        "xAI": "#9C5EDA",
+        "Moonshot": "#FF9D4D",
+        "Other": "#999999",
+    };
+
+    function getModelFamily(modelId) {
+        const id = modelId.toLowerCase();
+        if (id.includes("claude")) return "Anthropic";
+        if (id.includes("gpt") || id.startsWith("o1") || id.startsWith("o3") || id.startsWith("o4")) return "OpenAI";
+        if (id.includes("deepseek")) return "DeepSeek";
+        if (id.includes("gemini")) return "Google";
+        if (id.includes("qwen")) return "Alibaba";
+        if (id.includes("grok")) return "xAI";
+        if (id.includes("kimi")) return "Moonshot";
+        return "Other";
+    }
+
+    function parseYAMLData(yamlData, horizonType) {
+        const results = yamlData.results;
+        const data = [];
+
+        for (const [modelId, modelData] of Object.entries(results)) {
+            const metrics = modelData.metrics;
+            const horizon = metrics[`${horizonType}_horizon_length`];
+
+            if (!horizon || !horizon.estimate || !modelData.release_date) continue;
+
+            const date = new Date(modelData.release_date);
+            const name = MODEL_NAMES[modelId] || modelId.replace(/_/g, ' ');
+
+            // Convert minutes to hours
+            const estimate = horizon.estimate / 60;
+            const ciLow = (horizon.ci_low || horizon.estimate * 0.5) / 60;
+            const ciHigh = (horizon.ci_high || horizon.estimate * 2) / 60;
+
+            // Weight by inverse variance (from CI)
+            const logCIWidth = Math.log(ciHigh) - Math.log(ciLow);
+            const variance = Math.pow(logCIWidth / (2 * 1.96), 2);
+            const weight = 1 / Math.max(variance, 0.01);
+
+            data.push({
+                id: modelId,
+                name,
+                family: getModelFamily(modelId),
+                date,
+                dateNum: date.getTime() / (1000 * 60 * 60 * 24), // Days since epoch
+                horizon: estimate,
+                ciLow,
+                ciHigh,
+                weight,
+                avgScore: metrics.average_score?.estimate,
+                isSota: metrics.is_sota
+            });
+        }
+
+        return data.sort((a, b) => a.date - b.date);
+    }
+
+    function formatHours(hours) {
+        if (hours < 1/60) return `${(hours * 3600).toFixed(1)} sec`;
+        if (hours < 1) return `${(hours * 60).toFixed(1)} min`;
+        if (hours < 24) return `${hours.toFixed(1)} hrs`;
+        return `${(hours / 24).toFixed(1)} days`;
+    }
+
+    function formatDate(date) {
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // ============================================
+    // PLOTTING
+    // ============================================
+
+    function createPlot(data, analysis, options) {
+        const {
+            showCI,
+            showProjection,
+            showBootstrap,
+            endYear,
+            customScenarios
+        } = options;
+
+        const traces = [];
+
+        // Group data by family for coloring
+        const families = [...new Set(data.map(d => d.family))];
+
+        for (const family of families) {
+            const familyData = data.filter(d => d.family === family);
+            const color = FAMILY_COLORS[family] || "#999";
+
+            // Error bars
+            if (showCI) {
+                traces.push({
+                    x: familyData.map(d => d.date),
+                    y: familyData.map(d => d.horizon),
+                    error_y: {
+                        type: 'data',
+                        symmetric: false,
+                        array: familyData.map(d => d.ciHigh - d.horizon),
+                        arrayminus: familyData.map(d => d.horizon - d.ciLow),
+                        color: color,
+                        thickness: 1.5,
+                        width: 4
+                    },
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: family,
+                    marker: {
+                        color: color,
+                        size: 10,
+                        line: { color: 'white', width: 1 }
+                    },
+                    hovertemplate: familyData.map(d =>
+                        `<b>${d.name}</b><br>` +
+                        `Date: ${formatDate(d.date)}<br>` +
+                        `Horizon: ${formatHours(d.horizon)}<br>` +
+                        `95% CI: [${formatHours(d.ciLow)}, ${formatHours(d.ciHigh)}]<br>` +
+                        `<extra></extra>`
+                    )
+                });
+            } else {
+                traces.push({
+                    x: familyData.map(d => d.date),
+                    y: familyData.map(d => d.horizon),
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: family,
+                    marker: {
+                        color: color,
+                        size: 10,
+                        line: { color: 'white', width: 1 }
+                    },
+                    hovertemplate: familyData.map(d =>
+                        `<b>${d.name}</b><br>` +
+                        `Date: ${formatDate(d.date)}<br>` +
+                        `Horizon: ${formatHours(d.horizon)}<br>` +
+                        `<extra></extra>`
+                    )
+                });
+            }
+        }
+
+        // Fitted trendline
+        const minDate = Math.min(...data.map(d => d.dateNum));
+        const maxDate = Math.max(...data.map(d => d.dateNum));
+        const endDate = new Date(endYear, 11, 31).getTime() / (1000 * 60 * 60 * 24);
+
+        const trendX = [];
+        const trendY = [];
+        for (let d = minDate; d <= maxDate; d += 7) {
+            trendX.push(new Date(d * 24 * 60 * 60 * 1000));
+            trendY.push(Math.exp(analysis.regression.slope * d + analysis.regression.intercept));
+        }
+
+        const dt = analysis.doublingTime.estimate;
+        const dtMonths = dt / 30.44;
+
+        traces.push({
+            x: trendX,
+            y: trendY,
+            mode: 'lines',
+            type: 'scatter',
+            name: `Fitted Trend (${dt.toFixed(0)}d doubling)`,
+            line: { color: '#2563eb', width: 2.5 },
+            hovertemplate: trendX.map((date, i) =>
+                `Date: ${formatDate(date)}<br>` +
+                `Horizon: ${formatHours(trendY[i])}<br>` +
+                `Doubling: ${dt.toFixed(0)} days (${dtMonths.toFixed(1)} months)<br>` +
+                `<extra></extra>`
+            )
+        });
+
+        // Projection with bootstrap uncertainty
+        if (showProjection && maxDate < endDate) {
+            const projX = [];
+            const projY = [];
+            const projUpper = [];
+            const projLower = [];
+
+            for (let d = maxDate; d <= endDate; d += 7) {
+                const date = new Date(d * 24 * 60 * 60 * 1000);
+                projX.push(date);
+
+                const pred = Math.exp(analysis.regression.slope * d + analysis.regression.intercept);
+                projY.push(pred);
+
+                if (showBootstrap && analysis.trendlineBootstrap.length > 0) {
+                    // Get prediction interval from bootstrap
+                    const bootstrapPreds = analysis.trendlineBootstrap.map(reg =>
+                        Math.exp(reg.slope * d + reg.intercept)
+                    );
+                    bootstrapPreds.sort((a, b) => a - b);
+
+                    // Add residual variance for prediction interval
+                    const trendLow = bootstrapPreds[Math.floor(bootstrapPreds.length * 0.025)];
+                    const trendHigh = bootstrapPreds[Math.floor(bootstrapPreds.length * 0.975)];
+
+                    // Expand by residual std for prediction interval
+                    const residualFactor = Math.exp(1.96 * analysis.residualStd);
+                    projLower.push(trendLow / residualFactor);
+                    projUpper.push(trendHigh * residualFactor);
+                } else {
+                    // Simple expanding uncertainty
+                    const daysAhead = d - maxDate;
+                    const factor = 1 + 0.001 * daysAhead;
+                    projLower.push(pred / Math.pow(factor, 2));
+                    projUpper.push(pred * Math.pow(factor, 2));
+                }
+            }
+
+            // Prediction interval band
+            traces.push({
+                x: projX.concat([...projX].reverse()),
+                y: projUpper.concat([...projLower].reverse()),
+                fill: 'toself',
+                fillcolor: 'rgba(37, 99, 235, 0.15)',
+                line: { color: 'transparent' },
+                type: 'scatter',
+                name: '95% Prediction Interval',
+                showlegend: true,
+                hoverinfo: 'skip'
+            });
+
+            // Projection line
+            traces.push({
+                x: projX,
+                y: projY,
+                mode: 'lines',
+                type: 'scatter',
+                name: 'Projection',
+                line: { color: '#2563eb', width: 2, dash: 'dash' },
+                opacity: 0.7,
+                hovertemplate: projX.map((date, i) =>
+                    `Date: ${formatDate(date)}<br>` +
+                    `Projected: ${formatHours(projY[i])}<br>` +
+                    `95% PI: [${formatHours(projLower[i])}, ${formatHours(projUpper[i])}]<br>` +
+                    `<extra></extra>`
+                )
+            });
+        }
+
+        // Custom scenario projections
+        const customColors = ['#e11d48', '#7c3aed', '#059669'];
+        customScenarios.forEach((scenarioDays, i) => {
+            if (scenarioDays > 0) {
+                const projX = [];
+                const projY = [];
+
+                const startValue = Math.exp(analysis.regression.slope * maxDate + analysis.regression.intercept);
+
+                for (let d = maxDate; d <= endDate; d += 7) {
+                    const date = new Date(d * 24 * 60 * 60 * 1000);
+                    projX.push(date);
+
+                    const daysElapsed = d - maxDate;
+                    const value = startValue * Math.pow(2, daysElapsed / scenarioDays);
+                    projY.push(value);
+                }
+
+                const months = scenarioDays / 30.44;
+                traces.push({
+                    x: projX,
+                    y: projY,
+                    mode: 'lines',
+                    type: 'scatter',
+                    name: `Custom: ${scenarioDays}d (${months.toFixed(1)}mo)`,
+                    line: { color: customColors[i], width: 2, dash: 'dot' },
+                    hovertemplate: projX.map((date, j) =>
+                        `Date: ${formatDate(date)}<br>` +
+                        `Horizon: ${formatHours(projY[j])}<br>` +
+                        `Doubling: ${scenarioDays} days<br>` +
+                        `<extra></extra>`
+                    )
+                });
+            }
+        });
+
+        // Today line
+        const today = new Date();
+        traces.push({
+            x: [today, today],
+            y: [0.0001, 10000],
+            mode: 'lines',
+            type: 'scatter',
+            name: 'Today',
+            line: { color: 'rgba(255, 0, 255, 0.4)', width: 2, dash: 'dot' },
+            showlegend: false,
+            hoverinfo: 'skip'
+        });
+
+        const layout = {
+            title: {
+                text: 'Frontier AI Capability Horizons',
+                font: { size: 18 }
+            },
+            xaxis: {
+                title: 'Model Release Date',
+                gridcolor: 'rgba(128,128,128,0.2)',
+                range: [new Date(2019, 0, 1), new Date(endYear, 11, 31)]
+            },
+            yaxis: {
+                title: 'Time Horizon (hours)',
+                type: 'log',
+                gridcolor: 'rgba(128,128,128,0.2)',
+                tickvals: [1/3600, 1/60, 1/6, 0.5, 1, 2, 4, 8, 24, 48, 168, 720],
+                ticktext: ['1s', '1m', '10m', '30m', '1h', '2h', '4h', '8h', '1d', '2d', '1w', '1mo']
+            },
+            legend: {
+                orientation: 'v',
+                x: 1.02,
+                y: 1
+            },
+            hovermode: 'closest',
+            plot_bgcolor: 'white',
+            paper_bgcolor: 'white',
+            margin: { r: 150, t: 60 },
+            height: 550
+        };
+
+        Plotly.newPlot('plot', traces, layout, { responsive: true });
+    }
+
+    // ============================================
+    // UI UPDATES
+    // ============================================
+
+    function updateStats(analysis, data, oosResult) {
+        const dt = analysis.doublingTime;
+        document.getElementById('doublingTime').textContent = `${dt.estimate.toFixed(0)} days`;
+        document.getElementById('doublingTimeCI').textContent =
+            `95% CI: [${dt.ci95[0].toFixed(0)}, ${dt.ci95[1].toFixed(0)}] days`;
+        document.getElementById('doublingTimeDetail').textContent =
+            `${(dt.estimate / 30.44).toFixed(1)} months (${(dt.ci95[0]/30.44).toFixed(1)}–${(dt.ci95[1]/30.44).toFixed(1)})`;
+
+        const r2 = analysis.regression.rSquared;
+        document.getElementById('rSquared').textContent = `R² = ${r2.toFixed(3)}`;
+
+        const expAIC = analysis.modelComparison.exponentialAIC;
+        const linAIC = analysis.modelComparison.linearAIC;
+        const aicDiff = linAIC - expAIC;
+        document.getElementById('modelComparison').innerHTML =
+            analysis.modelComparison.preferExponential
+                ? `<span class="model-comparison">Exponential preferred</span> (ΔAIC = ${aicDiff.toFixed(1)})`
+                : `Linear may fit better (ΔAIC = ${aicDiff.toFixed(1)})`;
+        document.getElementById('fitDetail').textContent =
+            `Exp AIC: ${expAIC.toFixed(1)} | Linear AIC: ${linAIC.toFixed(1)}`;
+
+        const latest = data[data.length - 1];
+        document.getElementById('currentHorizon').textContent = formatHours(latest.horizon);
+        document.getElementById('currentModel').textContent = latest.name;
+        document.getElementById('currentDetail').textContent = `Released ${formatDate(latest.date)}`;
+
+        if (oosResult) {
+            document.getElementById('oosTest').textContent = `${(oosResult.coverage * 100).toFixed(0)}% coverage`;
+            document.getElementById('oosDetail').textContent =
+                `MAPE: ${(oosResult.mape * 100).toFixed(1)}% | ${oosResult.predictions.length} models tested`;
+        } else {
+            document.getElementById('oosTest').textContent = 'N/A';
+            document.getElementById('oosDetail').textContent = 'Not enough data';
+        }
+    }
+
+    function updateModelSelectors(data) {
+        const model1 = document.getElementById('model1');
+        const model2 = document.getElementById('model2');
+
+        // Sort by date descending (newest first)
+        const sorted = [...data].sort((a, b) => b.date - a.date);
+
+        model1.innerHTML = sorted.map(d =>
+            `<option value="${d.id}">${d.name} (${formatDate(d.date)})</option>`
+        ).join('');
+
+        model2.innerHTML = sorted.map(d =>
+            `<option value="${d.id}">${d.name} (${formatDate(d.date)})</option>`
+        ).join('');
+
+        // Default: oldest for model1, newest for model2
+        model1.selectedIndex = sorted.length - 1;
+        model2.selectedIndex = 0;
+
+        // Set date inputs
+        const dates = data.map(d => d.date);
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+
+        document.getElementById('calcStartDate').value = minDate.toISOString().split('T')[0];
+        document.getElementById('calcEndDate').value = maxDate.toISOString().split('T')[0];
+    }
+
+    function updateModelCalc(data, horizonType) {
+        const model1Id = document.getElementById('model1').value;
+        const model2Id = document.getElementById('model2').value;
+
+        const m1 = data.find(d => d.id === model1Id);
+        const m2 = data.find(d => d.id === model2Id);
+
+        const resultDiv = document.getElementById('modelCalcResult');
+
+        if (!m1 || !m2 || m1.id === m2.id) {
+            resultDiv.style.display = 'none';
+            return;
+        }
+
+        // Ensure m1 is earlier
+        const [earlier, later] = m1.date < m2.date ? [m1, m2] : [m2, m1];
+
+        const daysBetween = (later.date - earlier.date) / (1000 * 60 * 60 * 24);
+
+        if (later.horizon <= earlier.horizon) {
+            resultDiv.className = 'calc-result warning';
+            resultDiv.innerHTML = `<strong>No improvement detected</strong><br>
+                ${later.name} (${formatHours(later.horizon)}) ≤ ${earlier.name} (${formatHours(earlier.horizon)})`;
+            resultDiv.style.display = 'block';
+            return;
+        }
+
+        const logRatio = Math.log2(later.horizon / earlier.horizon);
+        const doublingTime = daysBetween / logRatio;
+        const months = doublingTime / 30.44;
+
+        resultDiv.className = 'calc-result';
+        resultDiv.innerHTML = `
+            <strong>Implied Doubling Time: ${doublingTime.toFixed(0)} days (${months.toFixed(1)} months)</strong><br>
+            <span style="color: #64748b; font-size: 0.9rem;">
+                ${earlier.name} → ${later.name}<br>
+                ${daysBetween.toFixed(0)} days elapsed |
+                ${formatHours(earlier.horizon)} → ${formatHours(later.horizon)} (${(later.horizon/earlier.horizon).toFixed(1)}x)
+            </span>
+        `;
+        resultDiv.style.display = 'block';
+    }
+
+    function updateDateCalc(data) {
+        const startDate = new Date(document.getElementById('calcStartDate').value);
+        const endDate = new Date(document.getElementById('calcEndDate').value);
+
+        const resultDiv = document.getElementById('dateCalcResult');
+
+        if (startDate >= endDate) {
+            resultDiv.style.display = 'none';
+            return;
+        }
+
+        // Find models in range
+        const modelsInRange = data.filter(d => d.date >= startDate && d.date <= endDate);
+
+        if (modelsInRange.length < 2) {
+            resultDiv.className = 'calc-result warning';
+            resultDiv.innerHTML = '<strong>Not enough models in date range</strong>';
+            resultDiv.style.display = 'block';
+            return;
+        }
+
+        const sorted = modelsInRange.sort((a, b) => a.date - b.date);
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+
+        if (last.horizon <= first.horizon) {
+            resultDiv.className = 'calc-result warning';
+            resultDiv.innerHTML = `<strong>No improvement in this period</strong>`;
+            resultDiv.style.display = 'block';
+            return;
+        }
+
+        const daysBetween = (last.date - first.date) / (1000 * 60 * 60 * 24);
+        const logRatio = Math.log2(last.horizon / first.horizon);
+        const doublingTime = daysBetween / logRatio;
+        const months = doublingTime / 30.44;
+
+        resultDiv.className = 'calc-result';
+        resultDiv.innerHTML = `
+            <strong>Implied Doubling Time: ${doublingTime.toFixed(0)} days (${months.toFixed(1)} months)</strong><br>
+            <span style="color: #64748b; font-size: 0.9rem;">
+                Using: ${first.name} → ${last.name}<br>
+                ${daysBetween.toFixed(0)} days |
+                ${formatHours(first.horizon)} → ${formatHours(last.horizon)} (${(last.horizon/first.horizon).toFixed(1)}x)
+            </span>
+        `;
+        resultDiv.style.display = 'block';
+    }
+
+    function updateMilestoneCalc(analysis, data) {
+        const targetHours = parseFloat(document.getElementById('targetHorizon').value);
+        const latest = data[data.length - 1];
+        const currentHorizon = latest.horizon;
+
+        const resultDiv = document.getElementById('milestoneResult');
+
+        if (currentHorizon >= targetHours) {
+            resultDiv.className = 'calc-result';
+            resultDiv.innerHTML = `<strong>Already achieved!</strong> Current frontier: ${formatHours(currentHorizon)}`;
+            resultDiv.style.display = 'block';
+            return;
+        }
+
+        const dt = analysis.doublingTime;
+
+        // Calculate for fitted doubling time
+        const daysNeeded = dt.estimate * Math.log2(targetHours / currentHorizon);
+        const targetDate = new Date(latest.date.getTime() + daysNeeded * 24 * 60 * 60 * 1000);
+
+        // CI on target date
+        const daysLow = dt.ci95[0] * Math.log2(targetHours / currentHorizon);
+        const daysHigh = dt.ci95[1] * Math.log2(targetHours / currentHorizon);
+        const dateLow = new Date(latest.date.getTime() + daysLow * 24 * 60 * 60 * 1000);
+        const dateHigh = new Date(latest.date.getTime() + daysHigh * 24 * 60 * 60 * 1000);
+
+        const daysFromNow = Math.round((targetDate - new Date()) / (1000 * 60 * 60 * 24));
+
+        let html = `
+            <strong>Fitted trend: ${targetDate.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</strong><br>
+            <span style="color: #64748b; font-size: 0.9rem;">
+                95% CI: ${dateLow.toLocaleDateString('en-US', {month: 'short', year: 'numeric'})} –
+                ${dateHigh.toLocaleDateString('en-US', {month: 'short', year: 'numeric'})}
+                ${daysFromNow > 0 ? `(~${daysFromNow} days from now)` : ''}
+            </span>
+        `;
+
+        // Add custom scenarios
+        const customInputs = [
+            document.getElementById('custom1').value,
+            document.getElementById('custom2').value,
+            document.getElementById('custom3').value
+        ];
+        const colors = ['#e11d48', '#7c3aed', '#059669'];
+
+        customInputs.forEach((val, i) => {
+            const customDT = parseFloat(val);
+            if (customDT > 0) {
+                const customDays = customDT * Math.log2(targetHours / currentHorizon);
+                const customDate = new Date(latest.date.getTime() + customDays * 24 * 60 * 60 * 1000);
+                html += `<br><span style="color: ${colors[i]}; font-weight: 500;">
+                    Custom ${customDT}d: ${customDate.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}
+                </span>`;
+            }
+        });
+
+        resultDiv.className = 'calc-result';
+        resultDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+
+    // ============================================
+    // MAIN
+    // ============================================
+
+    let rawData = null;
+    let currentData = null;
+    let currentAnalysis = null;
+
+    async function loadData() {
+        const primaryUrl = 'https://metr.org/assets/benchmark_results.yaml';
+        // Local fallback - if you cache the YAML locally (e.g., via GitHub Action or cron)
+        const localFallback = './benchmark_results.yaml';
+
+        const sources = [
+            // 1. Try local cached copy first (same-origin, no CORS)
+            { url: localFallback, name: 'local cache' },
+            // 2. Try direct fetch (works if METR adds CORS headers)
+            { url: primaryUrl, name: 'direct' },
+            // 3. CORS proxies as fallback
+            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`, name: 'allorigins proxy' },
+            { url: `https://corsproxy.io/?${encodeURIComponent(primaryUrl)}`, name: 'corsproxy' },
+        ];
+
+        for (const source of sources) {
+            try {
+                const response = await fetch(source.url);
+                if (response.ok) {
+                    const text = await response.text();
+                    // Validate it's actually YAML
+                    if (text.includes('benchmark_name') || text.includes('results')) {
+                        rawData = jsyaml.load(text);
+                        console.log(`Data loaded via ${source.name}`);
+                        refresh();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log(`Failed to load from ${source.name}:`, error.message);
+                continue;
+            }
+        }
+
+        document.getElementById('plot').innerHTML =
+            `<div class="loading" style="color: #ef4444;">
+                Error loading data from all sources.<br>
+                <a href="${primaryUrl}" target="_blank">Download YAML manually</a> and save as benchmark_results.yaml
+            </div>`;
+    }
+
+    function refresh() {
+        if (!rawData) return;
+
+        // Clear loading message
+        document.getElementById('plot').innerHTML = '';
+
+        const horizonType = document.getElementById('horizonType').value;
+        const fitStartDate = new Date(document.getElementById('fitStartDate').value);
+        const endYear = parseInt(document.getElementById('endYear').value);
+        const showCI = document.getElementById('showCI').checked;
+        const showProjection = document.getElementById('showProjection').checked;
+        const showBootstrap = document.getElementById('showBootstrap').checked;
+
+        const customScenarios = [
+            parseFloat(document.getElementById('custom1').value) || 0,
+            parseFloat(document.getElementById('custom2').value) || 0,
+            parseFloat(document.getElementById('custom3').value) || 0
+        ];
+
+        // Parse all data
+        const allData = parseYAMLData(rawData, horizonType);
+
+        // Filter for fitting
+        const fitData = allData.filter(d => d.date >= fitStartDate);
+
+        if (fitData.length < 4) {
+            document.getElementById('plot').innerHTML =
+                '<div class="loading">Not enough data points for analysis. Adjust the fit start date.</div>';
+            return;
+        }
+
+        // Run analysis
+        currentData = allData;
+        currentAnalysis = analyzeData(fitData, showBootstrap ? 2000 : 100);
+        const oosResult = outOfSampleTest(fitData);
+
+        // Update UI
+        createPlot(allData, currentAnalysis, {
+            showCI,
+            showProjection,
+            showBootstrap,
+            endYear,
+            customScenarios
+        });
+
+        updateStats(currentAnalysis, fitData, oosResult);
+        updateModelSelectors(allData);
+        updateModelCalc(allData, horizonType);
+        updateMilestoneCalc(currentAnalysis, fitData);
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+
+        // Control changes
+        ['horizonType', 'fitStartDate', 'endYear', 'showCI', 'showProjection', 'showBootstrap'].forEach(id => {
+            document.getElementById(id).addEventListener('change', refresh);
+        });
+
+        // Custom scenarios (debounced)
+        let debounceTimer;
+        ['custom1', 'custom2', 'custom3'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(refresh, 300);
+            });
+        });
+
+        // Calculator tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Model calculator
+        ['model1', 'model2'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                updateModelCalc(currentData, document.getElementById('horizonType').value);
+            });
+        });
+
+        // Date calculator
+        ['calcStartDate', 'calcEndDate'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                updateDateCalc(currentData);
+            });
+        });
+
+        // Milestone calculator
+        document.getElementById('targetHorizon').addEventListener('change', () => {
+            if (currentAnalysis && currentData) {
+                const fitStartDate = new Date(document.getElementById('fitStartDate').value);
+                const fitData = currentData.filter(d => d.date >= fitStartDate);
+                updateMilestoneCalc(currentAnalysis, fitData);
+            }
+        });
+    });
+    </script>
+</body>
+</html>
