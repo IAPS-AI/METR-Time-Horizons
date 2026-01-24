@@ -23,6 +23,11 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.1",
 ]
+dashboard = [
+    "streamlit>=1.30",
+    "plotly>=5.18",
+    "requests>=2.31",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
