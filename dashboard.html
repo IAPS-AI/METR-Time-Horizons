@@ -474,6 +474,116 @@
         </div>
 
         <div class="calculator-section">
+            <h2>🔍 Performance Gap Analysis</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                Compare performance between different model categories to understand accessibility gaps.
+            </p>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">Comparison</span>
+                    <div class="tabs" style="margin-top: 0.25rem;">
+                        <button class="tab active" data-gap-tab="open_closed">Open vs Closed</button>
+                        <button class="tab" data-gap-tab="china_us">China vs US</button>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">Gap Metric</span>
+                    <div class="tabs" style="margin-top: 0.25rem;">
+                        <button class="tab active" data-gap-metric="average">Average Gap</button>
+                        <button class="tab" data-gap-metric="current">Current Gap (Est.)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid" style="margin-top: 1rem;">
+                <div class="stat-card">
+                    <h3 id="gapMetricLabel">Average Gap</h3>
+                    <div class="stat-value" id="gapAvg">—</div>
+                    <div class="stat-ci" id="gapAvgDetail"></div>
+                    <div class="stat-detail" id="gapAvgExplainer" style="margin-top: 0.5rem;"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Current Horizon Ratio</h3>
+                    <div class="stat-value" id="gapRatio">—</div>
+                    <div class="stat-ci" id="gapRatioDetail"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Matched / Unmatched</h3>
+                    <div class="stat-value" id="gapMatched">—</div>
+                    <div class="stat-ci" id="gapMatchedDetail"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Growth Rate Comparison</h3>
+                    <div class="stat-value" id="gapTrend">—</div>
+                    <div class="stat-ci" id="gapTrendDetail"></div>
+                </div>
+            </div>
+
+            <details id="currentGapExplainer" style="margin-top: 1rem; display: none;">
+                <summary style="cursor: pointer; font-weight: 500; color: #0f172a;">How is the current gap estimated?</summary>
+                <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #64748b; line-height: 1.7;">
+                    <p>The <strong>average gap</strong> is based on historical matched pairs, but may underestimate the current gap because it doesn't account for models that haven't been matched yet.</p>
+                    <p style="margin-top: 0.5rem;">The <strong>estimated current gap</strong> treats unmatched models as <strong>censored observations</strong> — they tell us the gap is <em>at least</em> as long as their age.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Methodology (Survival Analysis):</strong></p>
+                    <ol style="margin-left: 1.5rem; margin-top: 0.25rem;">
+                        <li>Fit a log-normal distribution to historical matched gaps</li>
+                        <li>For unmatched models, calculate E[gap | gap > age] using truncated log-normal</li>
+                        <li>Weight by age (older unmatched models are more informative)</li>
+                    </ol>
+                    <p style="margin-top: 0.5rem;" id="gapMinBound"></p>
+                </div>
+            </details>
+
+            <div id="gapPlot" style="margin-top: 1rem; min-height: 400px;"></div>
+
+            <details style="margin-top: 1rem;">
+                <summary style="cursor: pointer; font-weight: 600; color: #0f172a;">Gap Details</summary>
+                <div style="margin-top: 1rem; overflow-x: auto;">
+                    <table id="gapTable" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e2e8f0;">
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;" id="gapLeadingHeader">Leading Model</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Date</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Horizon</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;" id="gapLaggingHeader">Lagging Model</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Matched Date</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Gap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gapTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details style="margin-top: 1rem;">
+                <summary style="cursor: pointer; font-weight: 600; color: #0f172a;">Model Classification</summary>
+                <div style="margin-top: 1rem; overflow-x: auto;">
+                    <table id="classificationTable" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e2e8f0;">
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Model</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Family</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Type</th>
+                                <th style="text-align: left; padding: 0.5rem; color: #64748b;">Region</th>
+                                <th style="text-align: right; padding: 0.5rem; color: #64748b;">Horizon</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classificationTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="methodology" style="margin-top: 1rem;">
+                    <strong>Classification Rules:</strong><br>
+                    • <strong>Open-weight families:</strong> DeepSeek, Alibaba (Qwen), Meta (LLaMA), Mistral<br>
+                    • <strong>Open-weight patterns:</strong> Model names containing "oss", "open", "llama", "mistral"<br>
+                    • <strong>Manual overrides:</strong> GPT-2 (open), Kimi K2 (open)
+                </div>
+            </details>
+        </div>
+
+        <div class="calculator-section">
             <h2>Methodology & Limitations</h2>
             <div style="font-size: 0.85rem; color: #64748b; line-height: 1.7;">
                 <p><strong>Time Horizon:</strong> The amount of serial human labor (on software/research tasks) that AI can replace at the selected success rate. A 50% time horizon of 4 hours means the model succeeds 50% of the time on tasks that take skilled humans 4 hours to complete.</p>
@@ -607,8 +717,10 @@
         bootstrapStats.sort((a, b) => a - b);
 
         const estimate = statFn(data);
-        const ci95Low = bootstrapStats[Math.floor(bootstrapStats.length * 0.025)];
-        const ci95High = bootstrapStats[Math.floor(bootstrapStats.length * 0.975)];
+        const lowIdx = Math.min(Math.floor(bootstrapStats.length * 0.025), bootstrapStats.length - 1);
+        const highIdx = Math.min(Math.floor(bootstrapStats.length * 0.975), bootstrapStats.length - 1);
+        const ci95Low = bootstrapStats[lowIdx];
+        const ci95High = bootstrapStats[highIdx];
 
         return {
             estimate,
@@ -740,6 +852,66 @@
     // DATA PROCESSING
     // ============================================
 
+    // ============================================
+    // MODEL CLASSIFICATION
+    // ============================================
+
+    // Family-based classification for country/region
+    const FAMILY_COUNTRY_MAP = {
+        "Anthropic": "US",
+        "OpenAI": "US",
+        "Google": "US",
+        "xAI": "US",
+        "Meta": "US",
+        "Mistral": "EU",
+        "DeepSeek": "China",
+        "Alibaba": "China",
+        "Moonshot": "China",
+        "Baichuan": "China",
+    };
+
+    // Families that typically release open-weight models
+    const OPEN_WEIGHT_FAMILIES = new Set([
+        "DeepSeek", "Alibaba", "Meta", "Mistral", "Baichuan"
+    ]);
+
+    // Patterns in model_id that indicate open weights
+    const OPEN_WEIGHT_PATTERNS = ["oss", "open", "llama", "mistral"];
+
+    // Specific model overrides
+    const MODEL_OVERRIDES = {
+        "gpt2": { isOpen: true },
+        "kimi_k2_thinking": { isOpen: true },
+    };
+
+    function isOpenModel(modelId, family) {
+        const id = modelId.toLowerCase();
+
+        // Check overrides first
+        if (MODEL_OVERRIDES[modelId]?.isOpen !== undefined) {
+            return MODEL_OVERRIDES[modelId].isOpen;
+        }
+
+        // Check family
+        if (OPEN_WEIGHT_FAMILIES.has(family)) {
+            return true;
+        }
+
+        // Check patterns
+        for (const pattern of OPEN_WEIGHT_PATTERNS) {
+            if (id.includes(pattern)) return true;
+        }
+
+        return false;
+    }
+
+    function getModelCountry(modelId, family) {
+        if (MODEL_OVERRIDES[modelId]?.country) {
+            return MODEL_OVERRIDES[modelId].country;
+        }
+        return FAMILY_COUNTRY_MAP[family] || "Other";
+    }
+
     const MODEL_NAMES = {
         "claude_3_5_sonnet": "Claude 3.5 Sonnet",
         "claude_3_5_sonnet_20241022": "Claude 3.5 Sonnet (Oct 2024)",
@@ -790,12 +962,14 @@
     function getModelFamily(modelId) {
         const id = modelId.toLowerCase();
         if (id.includes("claude")) return "Anthropic";
-        if (id.includes("gpt") || id.startsWith("o1") || id.startsWith("o3") || id.startsWith("o4")) return "OpenAI";
+        if (id.includes("gpt") || id.includes("davinci") || id.startsWith("o1") || id.startsWith("o3") || id.startsWith("o4")) return "OpenAI";
         if (id.includes("deepseek")) return "DeepSeek";
         if (id.includes("gemini")) return "Google";
         if (id.includes("qwen")) return "Alibaba";
         if (id.includes("grok")) return "xAI";
         if (id.includes("kimi")) return "Moonshot";
+        if (id.includes("llama")) return "Meta";
+        if (id.includes("mistral") || id.includes("mixtral")) return "Mistral";
         return "Other";
     }
 
@@ -822,10 +996,14 @@
             const variance = Math.pow(logCIWidth / (2 * 1.96), 2);
             const weight = 1 / Math.max(variance, 0.01);
 
+            const family = getModelFamily(modelId);
+            const isOpen = isOpenModel(modelId, family);
+            const country = getModelCountry(modelId, family);
+
             data.push({
                 id: modelId,
                 name,
-                family: getModelFamily(modelId),
+                family,
                 date,
                 dateNum: date.getTime() / (1000 * 60 * 60 * 24), // Days since epoch
                 horizon: estimate,
@@ -833,7 +1011,11 @@
                 ciHigh,
                 weight,
                 avgScore: metrics.average_score?.estimate,
-                isSota: metrics.is_sota
+                isSota: metrics.is_sota,
+                isOpen,
+                country,
+                isChina: country === "China",
+                isUS: country === "US"
             });
         }
 
@@ -849,6 +1031,321 @@
 
     function formatDate(date) {
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // ============================================
+    // GAP CALCULATION FUNCTIONS
+    // ============================================
+
+    const DAYS_PER_MONTH = 30.5;
+
+    /**
+     * Get frontier models for a group (cumulative max horizon over time)
+     */
+    function getFrontierModels(data, groupFn) {
+        const groups = {};
+        data.forEach(d => {
+            const group = groupFn(d);
+            if (!groups[group]) groups[group] = [];
+            groups[group].push(d);
+        });
+
+        const frontierModels = [];
+        for (const [group, models] of Object.entries(groups)) {
+            const sorted = [...models].sort((a, b) => a.date - b.date);
+            let maxHorizon = 0;
+            for (const model of sorted) {
+                if (model.horizon >= maxHorizon) {
+                    maxHorizon = model.horizon;
+                    frontierModels.push(model);
+                }
+            }
+        }
+
+        return frontierModels.sort((a, b) => a.date - b.date);
+    }
+
+    /**
+     * Calculate horizontal gaps between leading and lagging groups
+     */
+    function calculateHorizontalGaps(data, groupKey, leadingValue) {
+        const leadingData = data.filter(d => d[groupKey] === leadingValue);
+        const laggingData = data.filter(d => d[groupKey] !== leadingValue);
+
+        const leadingFrontier = getFrontierModels(leadingData, d => d.family);
+        const laggingFrontier = getFrontierModels(laggingData, d => d.family);
+
+        const gaps = [];
+
+        for (const leading of leadingFrontier) {
+            // Find first lagging model released AFTER leading that matches horizon
+            let matchingLagging = null;
+            for (const lagging of laggingFrontier) {
+                if (lagging.date <= leading.date) continue;
+                if (lagging.horizon >= leading.horizon) {
+                    matchingLagging = lagging;
+                    break;
+                }
+            }
+
+            if (matchingLagging) {
+                const gapDays = (matchingLagging.date - leading.date) / (1000 * 60 * 60 * 24);
+                gaps.push({
+                    leadingModel: leading.name,
+                    leadingDate: leading.date,
+                    leadingHorizon: leading.horizon,
+                    laggingModel: matchingLagging.name,
+                    laggingDate: matchingLagging.date,
+                    laggingHorizon: matchingLagging.horizon,
+                    gapMonths: gapDays / DAYS_PER_MONTH,
+                    matched: true
+                });
+            } else {
+                const gapDays = (new Date() - leading.date) / (1000 * 60 * 60 * 24);
+                gaps.push({
+                    leadingModel: leading.name,
+                    leadingDate: leading.date,
+                    leadingHorizon: leading.horizon,
+                    laggingModel: null,
+                    laggingDate: null,
+                    laggingHorizon: null,
+                    gapMonths: gapDays / DAYS_PER_MONTH,
+                    matched: false
+                });
+            }
+        }
+
+        return gaps;
+    }
+
+    /**
+     * Calculate gap statistics
+     */
+    function calculateGapStatistics(gaps) {
+        const matchedGaps = gaps.filter(g => g.matched).map(g => g.gapMonths);
+
+        if (matchedGaps.length === 0) {
+            return {
+                avgGapMonths: null,
+                stdGapMonths: null,
+                minGapMonths: null,
+                maxGapMonths: null,
+                totalMatched: 0,
+                totalUnmatched: gaps.filter(g => !g.matched).length
+            };
+        }
+
+        const avg = matchedGaps.reduce((a, b) => a + b, 0) / matchedGaps.length;
+        const variance = matchedGaps.reduce((sum, g) => sum + Math.pow(g - avg, 2), 0) / matchedGaps.length;
+        const std = Math.sqrt(variance);
+
+        return {
+            avgGapMonths: avg,
+            stdGapMonths: std,
+            minGapMonths: Math.min(...matchedGaps),
+            maxGapMonths: Math.max(...matchedGaps),
+            totalMatched: matchedGaps.length,
+            totalUnmatched: gaps.filter(g => !g.matched).length
+        };
+    }
+
+    /**
+     * Calculate trend statistics for a group
+     */
+    function calculateGroupTrend(data) {
+        if (data.length < 2) return null;
+
+        const frontier = getFrontierModels(data, d => d.family);
+        if (frontier.length < 2) return null;
+
+        const x = frontier.map(d => d.dateNum);
+        const y = frontier.map(d => Math.log(d.horizon));
+        // Use actual weights from data for consistency with main analysis
+        const weights = frontier.map(d => d.weight || 1);
+
+        const reg = weightedLinearRegression(x, y, weights);
+        const doublingTimeDays = Math.log(2) / reg.slope;
+
+        return {
+            doublingTimeDays,
+            doublingTimeMonths: doublingTimeDays / DAYS_PER_MONTH,
+            rSquared: reg.rSquared,
+            slope: reg.slope,
+            intercept: reg.intercept,
+            nModels: frontier.length,
+            startDate: frontier[0].date,
+            endDate: frontier[frontier.length - 1].date
+        };
+    }
+
+    /**
+     * Calculate current vertical gap between groups
+     */
+    function calculateVerticalGap(data, groupKey, leadingValue) {
+        const leadingData = data.filter(d => d[groupKey] === leadingValue);
+        const laggingData = data.filter(d => d[groupKey] !== leadingValue);
+
+        if (leadingData.length === 0 || laggingData.length === 0) {
+            return { gapHours: null, gapRatio: null };
+        }
+
+        const bestLeading = Math.max(...leadingData.map(d => d.horizon));
+        const bestLagging = Math.max(...laggingData.map(d => d.horizon));
+
+        return {
+            bestLeadingHorizon: bestLeading,
+            bestLaggingHorizon: bestLagging,
+            gapHours: bestLeading - bestLagging,
+            gapRatio: bestLagging > 0 ? bestLeading / bestLagging : null
+        };
+    }
+
+    /**
+     * Standard normal CDF approximation
+     */
+    function normalCDF(x) {
+        const a1 =  0.254829592;
+        const a2 = -0.284496736;
+        const a3 =  1.421413741;
+        const a4 = -1.453152027;
+        const a5 =  1.061405429;
+        const p  =  0.3275911;
+
+        const sign = x < 0 ? -1 : 1;
+        x = Math.abs(x) / Math.sqrt(2);
+
+        const t = 1.0 / (1.0 + p * x);
+        const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+        return 0.5 * (1.0 + sign * y);
+    }
+
+    /**
+     * Estimate current gap using survival analysis with censored observations.
+     *
+     * Uses Bayesian approach:
+     * 1. Fit log-normal distribution to historical matched gaps
+     * 2. For unmatched models, calculate E[X | X > c] (truncated expectation)
+     * 3. Weight by age (older unmatched models are more informative)
+     */
+    function estimateCurrentGap(gaps) {
+        const matched = gaps.filter(g => g.matched);
+        const unmatched = gaps.filter(g => !g.matched);
+
+        const matchedGapMonths = matched.map(g => g.gapMonths).filter(g => g > 0);
+        const unmatchedAges = unmatched.map(g => g.gapMonths).sort((a, b) => b - a);
+
+        // No unmatched models - current gap is 0
+        if (unmatched.length === 0) {
+            return {
+                estimatedCurrentGap: 0,
+                minCurrentGap: 0,
+                confidence: 'high',
+                method: 'no_unmatched',
+                unmatchedAges: [],
+                priorParams: null
+            };
+        }
+
+        const minCurrentGap = Math.max(...unmatchedAges);
+
+        // Not enough matched data for proper estimation
+        if (matchedGapMonths.length < 3) {
+            const estimated = minCurrentGap * 1.3; // Heuristic: add 30%
+            return {
+                estimatedCurrentGap: estimated,
+                minCurrentGap: minCurrentGap,
+                confidence: 'low',
+                method: 'insufficient_data_heuristic',
+                unmatchedAges: unmatchedAges,
+                priorParams: null
+            };
+        }
+
+        // Fit log-normal distribution to matched gaps
+        const logMatched = matchedGapMonths.map(g => Math.log(g));
+        const muPrior = logMatched.reduce((a, b) => a + b, 0) / logMatched.length;
+        let sigmaPrior = Math.sqrt(
+            logMatched.reduce((sum, x) => sum + Math.pow(x - muPrior, 2), 0) / logMatched.length
+        );
+        if (sigmaPrior === 0) sigmaPrior = 0.5;
+
+        /**
+         * E[X | X > c] for log-normal distribution
+         * Uses truncated log-normal formula
+         */
+        function expectedGivenGreaterThan(c, mu, sigma) {
+            if (c <= 0) {
+                return Math.exp(mu + sigma * sigma / 2);
+            }
+
+            const logC = Math.log(c);
+            const z = (logC - mu) / sigma;
+            const survival = 1 - normalCDF(z);
+
+            if (survival < 1e-10) {
+                // Survival very small - gap likely much larger
+                return c * 2;
+            }
+
+            // E[X | X > c] = exp(mu + sigma^2/2) * Phi((mu + sigma^2 - ln(c))/sigma) / S(c)
+            const zShifted = (mu + sigma * sigma - logC) / sigma;
+            const expected = Math.exp(mu + sigma * sigma / 2) * normalCDF(zShifted) / survival;
+
+            return expected;
+        }
+
+        // Calculate expected gap for each unmatched model
+        const expectedGaps = [];
+        for (const age of unmatchedAges) {
+            if (age > 0) {
+                const expGap = expectedGivenGreaterThan(age, muPrior, sigmaPrior);
+                expectedGaps.push(expGap);
+            }
+        }
+
+        let estimated, confidence;
+
+        if (expectedGaps.length > 0) {
+            // Weight by age (older unmatched models are more informative)
+            const weights = unmatchedAges.slice(0, expectedGaps.length);
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            const normalizedWeights = totalWeight > 0
+                ? weights.map(w => w / totalWeight)
+                : weights.map(() => 1 / weights.length);
+
+            // Weighted average of expected gaps
+            estimated = expectedGaps.reduce((sum, g, i) => sum + g * normalizedWeights[i], 0);
+            estimated = Math.max(estimated, minCurrentGap);
+
+            // Calculate confidence based on deviation from prior mean
+            const priorMean = Math.exp(muPrior + sigmaPrior * sigmaPrior / 2);
+            const deviationRatio = priorMean > 0 ? minCurrentGap / priorMean : 2;
+
+            if (deviationRatio < 1.5) {
+                confidence = 'high';
+            } else if (deviationRatio < 2.5) {
+                confidence = 'medium';
+            } else {
+                confidence = 'low';
+            }
+        } else {
+            estimated = minCurrentGap * 1.3;
+            confidence = 'low';
+        }
+
+        return {
+            estimatedCurrentGap: estimated,
+            minCurrentGap: minCurrentGap,
+            confidence: confidence,
+            method: 'survival_analysis_mle',
+            unmatchedAges: unmatchedAges,
+            priorParams: {
+                mu: muPrior,
+                sigma: sigmaPrior,
+                priorMeanMonths: Math.exp(muPrior + sigmaPrior * sigmaPrior / 2)
+            }
+        };
     }
 
     // ============================================
@@ -1241,24 +1738,29 @@
         const first = sorted[0];
         const last = sorted[sorted.length - 1];
 
-        if (last.horizon <= first.horizon) {
+        // Use weighted linear regression over all points for more robust estimate
+        const x = sorted.map(d => d.dateNum);
+        const y = sorted.map(d => Math.log(d.horizon));
+        const weights = sorted.map(d => d.weight || 1);
+
+        const reg = weightedLinearRegression(x, y, weights);
+
+        if (reg.slope <= 0) {
             resultDiv.className = 'calc-result warning';
             resultDiv.innerHTML = `<strong>No improvement in this period</strong>`;
             resultDiv.style.display = 'block';
             return;
         }
 
-        const daysBetween = (last.date - first.date) / (1000 * 60 * 60 * 24);
-        const logRatio = Math.log2(last.horizon / first.horizon);
-        const doublingTime = daysBetween / logRatio;
+        const doublingTime = Math.log(2) / reg.slope;
         const months = doublingTime / 30.44;
+        const daysBetween = (last.date - first.date) / (1000 * 60 * 60 * 24);
 
         resultDiv.className = 'calc-result';
         resultDiv.innerHTML = `
             <strong>Implied Doubling Time: ${doublingTime.toFixed(0)} days (${months.toFixed(1)} months)</strong><br>
             <span style="color: #64748b; font-size: 0.9rem;">
-                Using: ${first.name} → ${last.name}<br>
-                ${daysBetween.toFixed(0)} days |
+                Based on ${sorted.length} models over ${daysBetween.toFixed(0)} days (R² = ${reg.rSquared.toFixed(2)})<br>
                 ${formatHours(first.horizon)} → ${formatHours(last.horizon)} (${(last.horizon/first.horizon).toFixed(1)}x)
             </span>
         `;
@@ -1351,6 +1853,264 @@
         resultDiv.className = 'calc-result';
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
+    }
+
+    // ============================================
+    // GAP ANALYSIS UI
+    // ============================================
+
+    let currentGapFraming = 'open_closed';
+    let currentGapMetric = 'average'; // 'average' or 'current'
+
+    function createGapPlot(data, framing) {
+        const isOpenClosed = framing === 'open_closed';
+        const groupKey = isOpenClosed ? 'isOpen' : 'isChina';
+        const leadingValue = false; // Closed or US models lead
+
+        const leadingLabel = isOpenClosed ? 'Closed' : 'US';
+        const laggingLabel = isOpenClosed ? 'Open' : 'China';
+        const leadingColor = isOpenClosed ? '#e11d48' : '#2563eb';
+        const laggingColor = isOpenClosed ? '#2563eb' : '#e11d48';
+
+        const leadingData = data.filter(d => d[groupKey] === leadingValue);
+        const laggingData = data.filter(d => d[groupKey] !== leadingValue);
+
+        const leadingFrontier = getFrontierModels(leadingData, d => d.family);
+        const laggingFrontier = getFrontierModels(laggingData, d => d.family);
+
+        const traces = [];
+
+        // Leading models
+        if (leadingFrontier.length > 0) {
+            traces.push({
+                x: leadingFrontier.map(d => d.date),
+                y: leadingFrontier.map(d => d.horizon),
+                mode: 'markers+lines',
+                type: 'scatter',
+                name: `${leadingLabel} frontier`,
+                marker: { color: leadingColor, size: 10, symbol: 'circle' },
+                line: { color: leadingColor, width: 2 },
+                hovertemplate: leadingFrontier.map(d =>
+                    `<b>${d.name}</b><br>Date: ${formatDate(d.date)}<br>Horizon: ${formatHours(d.horizon)}<extra></extra>`
+                )
+            });
+        }
+
+        // Lagging models
+        if (laggingFrontier.length > 0) {
+            traces.push({
+                x: laggingFrontier.map(d => d.date),
+                y: laggingFrontier.map(d => d.horizon),
+                mode: 'markers+lines',
+                type: 'scatter',
+                name: `${laggingLabel} frontier`,
+                marker: { color: laggingColor, size: 10, symbol: 'square' },
+                line: { color: laggingColor, width: 2 },
+                hovertemplate: laggingFrontier.map(d =>
+                    `<b>${d.name}</b><br>Date: ${formatDate(d.date)}<br>Horizon: ${formatHours(d.horizon)}<extra></extra>`
+                )
+            });
+        }
+
+        // Add trend lines
+        const leadingTrend = calculateGroupTrend(leadingData);
+        const laggingTrend = calculateGroupTrend(laggingData);
+
+        if (leadingTrend && leadingTrend.doublingTimeDays > 0) {
+            const trendX = [];
+            const trendY = [];
+            const startNum = leadingTrend.startDate.getTime() / (1000 * 60 * 60 * 24);
+            const endNum = leadingTrend.endDate.getTime() / (1000 * 60 * 60 * 24);
+            for (let d = startNum; d <= endNum; d += 7) {
+                trendX.push(new Date(d * 24 * 60 * 60 * 1000));
+                trendY.push(Math.exp(leadingTrend.slope * d + leadingTrend.intercept));
+            }
+            traces.push({
+                x: trendX, y: trendY,
+                mode: 'lines', type: 'scatter',
+                name: `${leadingLabel} trend`,
+                line: { color: leadingColor, width: 2, dash: 'dash' },
+                opacity: 0.6,
+                showlegend: false
+            });
+        }
+
+        if (laggingTrend && laggingTrend.doublingTimeDays > 0) {
+            const trendX = [];
+            const trendY = [];
+            const startNum = laggingTrend.startDate.getTime() / (1000 * 60 * 60 * 24);
+            const endNum = laggingTrend.endDate.getTime() / (1000 * 60 * 60 * 24);
+            for (let d = startNum; d <= endNum; d += 7) {
+                trendX.push(new Date(d * 24 * 60 * 60 * 1000));
+                trendY.push(Math.exp(laggingTrend.slope * d + laggingTrend.intercept));
+            }
+            traces.push({
+                x: trendX, y: trendY,
+                mode: 'lines', type: 'scatter',
+                name: `${laggingLabel} trend`,
+                line: { color: laggingColor, width: 2, dash: 'dash' },
+                opacity: 0.6,
+                showlegend: false
+            });
+        }
+
+        const title = isOpenClosed ? 'Open vs Closed Model Performance' : 'US vs China Model Performance';
+
+        const layout = {
+            title: { text: title, font: { size: 16 } },
+            xaxis: {
+                title: 'Release Date',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            yaxis: {
+                title: 'Time Horizon (hours)',
+                type: 'log',
+                gridcolor: 'rgba(128,128,128,0.2)',
+                tickvals: [0.01, 0.1, 0.5, 1, 2, 4, 8, 24, 48, 168],
+                ticktext: ['36s', '6m', '30m', '1h', '2h', '4h', '8h', '1d', '2d', '1w']
+            },
+            legend: { orientation: 'h', y: 1.1 },
+            hovermode: 'closest',
+            plot_bgcolor: 'white',
+            paper_bgcolor: 'white',
+            height: 400
+        };
+
+        Plotly.newPlot('gapPlot', traces, layout, { responsive: true });
+    }
+
+    function updateGapStats(data, framing, metric) {
+        const isOpenClosed = framing === 'open_closed';
+        const groupKey = isOpenClosed ? 'isOpen' : 'isChina';
+        const leadingValue = false;
+
+        const leadingLabel = isOpenClosed ? 'Closed' : 'US';
+        const laggingLabel = isOpenClosed ? 'Open' : 'Chinese';
+
+        // Update table headers
+        document.getElementById('gapLeadingHeader').textContent = `${leadingLabel} Model`;
+        document.getElementById('gapLaggingHeader').textContent = `${laggingLabel} Model`;
+
+        // Calculate gaps
+        const gaps = calculateHorizontalGaps(data, groupKey, leadingValue);
+        const stats = calculateGapStatistics(gaps);
+        const verticalGap = calculateVerticalGap(data, groupKey, leadingValue);
+        const currentGapEstimate = estimateCurrentGap(gaps);
+
+        // Calculate trends
+        const leadingData = data.filter(d => d[groupKey] === leadingValue);
+        const laggingData = data.filter(d => d[groupKey] !== leadingValue);
+        const leadingTrend = calculateGroupTrend(leadingData);
+        const laggingTrend = calculateGroupTrend(laggingData);
+
+        // Update gap metric label and show/hide explainer
+        const isCurrentMetric = metric === 'current';
+        document.getElementById('gapMetricLabel').textContent = isCurrentMetric ? 'Current Gap (Est.)' : 'Average Gap';
+        document.getElementById('currentGapExplainer').style.display = isCurrentMetric ? 'block' : 'none';
+
+        // Update stats cards based on selected metric
+        if (isCurrentMetric) {
+            // Show estimated current gap
+            document.getElementById('gapAvg').textContent = `${currentGapEstimate.estimatedCurrentGap.toFixed(1)} months`;
+            document.getElementById('gapAvgDetail').textContent =
+                `Min bound: ${currentGapEstimate.minCurrentGap.toFixed(1)} months`;
+
+            const confidenceColors = { high: '#16a34a', medium: '#d97706', low: '#dc2626' };
+            document.getElementById('gapAvgExplainer').innerHTML =
+                `<span style="color: ${confidenceColors[currentGapEstimate.confidence]};">` +
+                `Confidence: ${currentGapEstimate.confidence}</span>` +
+                (currentGapEstimate.priorParams ?
+                    ` · Prior mean: ${currentGapEstimate.priorParams.priorMeanMonths.toFixed(1)} mo` : '');
+
+            document.getElementById('gapMinBound').innerHTML =
+                `<strong>Minimum bound:</strong> ${currentGapEstimate.minCurrentGap.toFixed(1)} months — ` +
+                `the gap cannot be shorter than the oldest unmatched model.`;
+        } else {
+            // Show average gap
+            if (stats.avgGapMonths !== null) {
+                document.getElementById('gapAvg').textContent = `${stats.avgGapMonths.toFixed(1)} months`;
+                document.getElementById('gapAvgDetail').textContent =
+                    `±${stats.stdGapMonths.toFixed(1)} mo std dev`;
+                document.getElementById('gapAvgExplainer').textContent =
+                    `Range: ${stats.minGapMonths.toFixed(1)} – ${stats.maxGapMonths.toFixed(1)} months`;
+            } else {
+                document.getElementById('gapAvg').textContent = 'N/A';
+                document.getElementById('gapAvgDetail').textContent = 'No matched gaps yet';
+                document.getElementById('gapAvgExplainer').textContent = '';
+            }
+        }
+
+        if (verticalGap.gapRatio !== null) {
+            document.getElementById('gapRatio').textContent = `${verticalGap.gapRatio.toFixed(1)}x`;
+            document.getElementById('gapRatioDetail').textContent =
+                `${leadingLabel}: ${formatHours(verticalGap.bestLeadingHorizon)} vs ${laggingLabel}: ${formatHours(verticalGap.bestLaggingHorizon)}`;
+        } else {
+            document.getElementById('gapRatio').textContent = 'N/A';
+            document.getElementById('gapRatioDetail').textContent = '';
+        }
+
+        document.getElementById('gapMatched').textContent = `${stats.totalMatched} / ${stats.totalUnmatched}`;
+        document.getElementById('gapMatchedDetail').textContent =
+            `${stats.totalMatched} matched, ${stats.totalUnmatched} unmatched`;
+
+        if (leadingTrend && laggingTrend && leadingTrend.doublingTimeDays > 0 && laggingTrend.doublingTimeDays > 0) {
+            const ratio = leadingTrend.doublingTimeDays / laggingTrend.doublingTimeDays;
+            if (ratio > 1) {
+                document.getElementById('gapTrend').textContent = `${ratio.toFixed(1)}x faster`;
+                document.getElementById('gapTrendDetail').textContent =
+                    `${laggingLabel} improving faster (${laggingTrend.doublingTimeDays.toFixed(0)}d vs ${leadingTrend.doublingTimeDays.toFixed(0)}d doubling)`;
+            } else {
+                document.getElementById('gapTrend').textContent = `${(1/ratio).toFixed(1)}x faster`;
+                document.getElementById('gapTrendDetail').textContent =
+                    `${leadingLabel} improving faster (${leadingTrend.doublingTimeDays.toFixed(0)}d vs ${laggingTrend.doublingTimeDays.toFixed(0)}d doubling)`;
+            }
+        } else {
+            document.getElementById('gapTrend').textContent = 'N/A';
+            document.getElementById('gapTrendDetail').textContent = 'Insufficient data';
+        }
+
+        // Update gap table
+        const gapTableBody = document.getElementById('gapTableBody');
+        gapTableBody.innerHTML = gaps.map(gap => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 0.5rem; font-weight: 500;">${gap.leadingModel}</td>
+                <td style="padding: 0.5rem;">${formatDate(gap.leadingDate)}</td>
+                <td style="padding: 0.5rem; text-align: right; font-family: monospace;">${formatHours(gap.leadingHorizon)}</td>
+                <td style="padding: 0.5rem; font-weight: 500;">${gap.laggingModel || '—'}</td>
+                <td style="padding: 0.5rem;">${gap.laggingDate ? formatDate(gap.laggingDate) : 'Not matched'}</td>
+                <td style="padding: 0.5rem; text-align: right; font-family: monospace; color: ${gap.matched ? '#16a34a' : '#dc2626'};">
+                    ${gap.gapMonths.toFixed(1)} mo${gap.matched ? '' : '+'}
+                </td>
+            </tr>
+        `).join('');
+
+        // Update classification table
+        const classTableBody = document.getElementById('classificationTableBody');
+        const sorted = [...data].sort((a, b) => b.date - a.date);
+        classTableBody.innerHTML = sorted.map(d => {
+            const color = FAMILY_COLORS[d.family] || '#999';
+            return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 0.5rem; font-weight: 500;">${d.name}</td>
+                    <td style="padding: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></span>
+                            ${d.family}
+                        </span>
+                    </td>
+                    <td style="padding: 0.5rem; color: ${d.isOpen ? '#2563eb' : '#64748b'};">
+                        ${d.isOpen ? 'Open' : 'Closed'}
+                    </td>
+                    <td style="padding: 0.5rem;">${d.country}</td>
+                    <td style="padding: 0.5rem; text-align: right; font-family: monospace;">${formatHours(d.horizon)}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updateGapAnalysis(data) {
+        createGapPlot(data, currentGapFraming);
+        updateGapStats(data, currentGapFraming, currentGapMetric);
     }
 
     // ============================================
@@ -1452,6 +2212,7 @@
         updateModelCalc(allData, horizonType);
         updateMilestoneCalc(currentAnalysis, fitData);
         updateRawDataTable(allData);
+        updateGapAnalysis(allData);
     }
 
     // Event listeners
@@ -1472,10 +2233,10 @@
             });
         });
 
-        // Calculator tabs
-        document.querySelectorAll('.tab').forEach(tab => {
+        // Calculator tabs (only for tabs with data-tab attribute, not gap analysis tabs)
+        document.querySelectorAll('[data-tab]').forEach(tab => {
             tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
@@ -1503,6 +2264,30 @@
                 const fitData = currentData.filter(d => d.date >= fitStartDate);
                 updateMilestoneCalc(currentAnalysis, fitData);
             }
+        });
+
+        // Gap analysis tabs
+        document.querySelectorAll('[data-gap-tab]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('[data-gap-tab]').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentGapFraming = tab.dataset.gapTab;
+                if (currentData) {
+                    updateGapAnalysis(currentData);
+                }
+            });
+        });
+
+        // Gap metric toggle
+        document.querySelectorAll('[data-gap-metric]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('[data-gap-metric]').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentGapMetric = tab.dataset.gapMetric;
+                if (currentData) {
+                    updateGapAnalysis(currentData);
+                }
+            });
         });
     });
     </script>
