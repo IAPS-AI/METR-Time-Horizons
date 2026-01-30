@@ -2138,32 +2138,15 @@
     let currentData = null;
     let currentAnalysis = null;
 
-    async function loadData() {
-        const primaryUrl = 'https://metr.org/assets/benchmark_results_1_1.yaml';
-        // Local fallback - if you cache the YAML locally (e.g., via GitHub Action or cron)
-        const localFallback = './benchmark_results.yaml';
-
-        const sources = [
-            // 1. Try local cached copy first (same-origin, no CORS)
-            { url: localFallback, name: 'local cache' },
-            // 2. Try direct fetch (works if METR adds CORS headers)
-            { url: primaryUrl, name: 'direct' },
-            // 3. CORS proxies as fallback
-            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`, name: 'allorigins proxy' },
-            { url: `https://corsproxy.io/?${encodeURIComponent(primaryUrl)}`, name: 'corsproxy' },
-        ];
-
-        for (const source of sources) {
+    async function fetchYaml(urls) {
+        for (const source of urls) {
             try {
                 const response = await fetch(source.url);
                 if (response.ok) {
                     const text = await response.text();
-                    // Validate it's actually YAML
                     if (text.includes('benchmark_name') || text.includes('results')) {
-                        rawData = jsyaml.load(text);
                         console.log(`Data loaded via ${source.name}`);
-                        refresh();
-                        return;
+                        return jsyaml.load(text);
                     }
                 }
             } catch (error) {
@@ -2171,12 +2154,55 @@
                 continue;
             }
         }
+        return null;
+    }
 
-        document.getElementById('plot').innerHTML =
-            `<div class="loading" style="color: #ef4444;">
-                Error loading data from all sources.<br>
-                <a href="${primaryUrl}" target="_blank">Download YAML manually</a> and save as benchmark_results.yaml
-            </div>`;
+    async function loadData() {
+        const v1_1Url = 'https://metr.org/assets/benchmark_results_1_1.yaml';
+
+        const v1_1Sources = [
+            { url: './benchmark_results_1_1.yaml', name: 'local cache (v1.1)' },
+            { url: v1_1Url, name: 'direct (v1.1)' },
+            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(v1_1Url)}`, name: 'allorigins proxy (v1.1)' },
+            { url: `https://corsproxy.io/?${encodeURIComponent(v1_1Url)}`, name: 'corsproxy (v1.1)' },
+        ];
+
+        // v1.0 is no longer hosted by METR, so only load from local cache
+        const v1_0Sources = [
+            { url: './benchmark_results_1_0.yaml', name: 'local cache (v1.0)' },
+        ];
+
+        // Load both v1.1 (primary) and v1.0 (for models not yet re-evaluated on Inspect)
+        const [data_v1_1, data_v1_0] = await Promise.all([
+            fetchYaml(v1_1Sources),
+            fetchYaml(v1_0Sources),
+        ]);
+
+        if (!data_v1_1 && !data_v1_0) {
+            document.getElementById('plot').innerHTML =
+                `<div class="loading" style="color: #ef4444;">
+                    Error loading data from all sources.<br>
+                    <a href="${v1_1Url}" target="_blank">Download YAML manually</a>
+                </div>`;
+            return;
+        }
+
+        // Merge: start with v1.0 results, then overlay v1.1 (v1.1 takes precedence)
+        const mergedResults = {};
+        if (data_v1_0?.results) {
+            Object.assign(mergedResults, data_v1_0.results);
+        }
+        if (data_v1_1?.results) {
+            Object.assign(mergedResults, data_v1_1.results);
+        }
+
+        rawData = {
+            ...(data_v1_1 || data_v1_0),
+            results: mergedResults,
+        };
+
+        console.log(`Merged data: ${Object.keys(mergedResults).length} models (v1.0: ${data_v1_0 ? Object.keys(data_v1_0.results).length : 0}, v1.1: ${data_v1_1 ? Object.keys(data_v1_1.results).length : 0})`);
+        refresh();
     }
 
     function refresh() {

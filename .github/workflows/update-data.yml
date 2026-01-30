@@ -16,12 +16,12 @@ jobs:
 
       - name: Fetch latest benchmark data
         run: |
-          curl -s https://metr.org/assets/benchmark_results_1_1.yaml -o benchmark_results.yaml
+          curl -s https://metr.org/assets/benchmark_results_1_1.yaml -o benchmark_results_1_1.yaml
 
       - name: Check if data changed
         id: check
         run: |
-          if git diff --quiet benchmark_results.yaml; then
+          if git diff --quiet benchmark_results_1_1.yaml; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -32,6 +32,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add benchmark_results.yaml
+          git add benchmark_results_1_1.yaml
           git commit -m "Update benchmark data $(date -u +'%Y-%m-%d')"
           git push
