@@ -2213,9 +2213,11 @@
             { url: `https://corsproxy.io/?${encodeURIComponent(v1_1Url)}`, name: 'corsproxy (v1.1)' },
         ];
 
-        // v1.0 is no longer hosted by METR, so only load from local cache
+        const v1_0Url = 'https://metr.org/assets/benchmark_results_1_0.yaml';
         const v1_0Sources = [
-            { url: './benchmark_results_1_0.yaml', name: 'local cache (v1.0)' },
+            { url: v1_0Url, name: 'direct (v1.0)' },
+            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(v1_0Url)}`, name: 'allorigins proxy (v1.0)' },
+            { url: `https://corsproxy.io/?${encodeURIComponent(v1_0Url)}`, name: 'corsproxy (v1.0)' },
         ];
 
         // Load both v1.1 (primary) and v1.0 (for models not yet re-evaluated on Inspect)
