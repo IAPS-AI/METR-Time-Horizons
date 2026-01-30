@@ -998,7 +998,7 @@
             if (!horizon || !horizon.estimate || !modelData.release_date) continue;
 
             const date = new Date(modelData.release_date);
-            const name = MODEL_NAMES[modelId] || modelId.replace(/_/g, ' ');
+            const name = MODEL_NAMES[modelId] || MODEL_NAMES[modelId.replace(/_inspect$/, '')] || modelId.replace(/_inspect$/, '').replace(/_/g, ' ');
 
             // Convert minutes to hours
             const estimate = horizon.estimate / 60;
