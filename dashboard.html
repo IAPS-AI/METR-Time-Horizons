@@ -1041,9 +1041,20 @@
 
     function formatHours(hours) {
         if (hours < 1/60) return `${(hours * 3600).toFixed(1)} sec`;
-        if (hours < 1) return `${(hours * 60).toFixed(1)} min`;
-        if (hours < 24) return `${hours.toFixed(1)} hrs`;
-        return `${(hours / 24).toFixed(1)} days`;
+        if (hours < 1) {
+            const totalMin = Math.round(hours * 60);
+            return `${totalMin} min`;
+        }
+        if (hours < 24) {
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60);
+            if (m === 0) return `${h} hrs`;
+            return `${h} hrs ${m} min`;
+        }
+        const d = Math.floor(hours / 24);
+        const h = Math.round(hours - d * 24);
+        if (h === 0) return `${d} days`;
+        return `${d} days ${h} hrs`;
     }
 
     function formatDate(date) {
