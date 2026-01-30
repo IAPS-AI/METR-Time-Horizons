@@ -17,7 +17,7 @@ An interactive dashboard for exploring AI capability horizons with rigorous stat
 - **Milestone Calculator** — Estimate when AI will reach target capability horizons
 - **Doubling Time Calculator** — Compute implied doubling times between any two models or dates
 
-The dashboard pulls data from [METR's benchmark results](https://metr.org/assets/benchmark_results.yaml) and updates daily via GitHub Actions.
+The dashboard pulls data from [METR's benchmark results (v1.1)](https://metr.org/assets/benchmark_results_1_1.yaml) and updates daily via GitHub Actions.
 
 ## Overview
 
@@ -27,7 +27,7 @@ The time horizon methodology measures AI agent capabilities by:
 3. Fitting a **logistic curve** modeling P(success) as a function of log2(human_minutes)
 4. Extracting the **"time horizon"** - the task duration where the model hits a success threshold
 
-**Key finding**: AI agent time horizons have been doubling approximately every 7 months.
+**Key finding**: Under the [v1.1 methodology](https://metr.org/blog/2026-1-29-time-horizon-1-1/), AI agent time horizons have been doubling approximately every 4.3 months (131 days) since 2023.
 
 ## Repository Structure
 
@@ -137,7 +137,7 @@ The main model report with comprehensive analysis of 48+ models using the origin
 - Comparison overlays with time-horizon-1-1 results
 
 ### time-horizon-1-1
-Results similar to above, but run on an updated task suite. Includes stages for comparing doubling times with time-horizon-1-0 (`compare_doubling_times_vs_th_1_0`).
+The current primary report, using the [updated v1.1 task suite](https://metr.org/blog/2026-1-29-time-horizon-1-1/) (228 tasks, up from 170 in v1.0) evaluated on the Inspect framework. Includes stages for comparing doubling times with time-horizon-1-0 (`compare_doubling_times_vs_th_1_0`).
 
 ## Citation
 
