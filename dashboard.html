@@ -619,9 +619,9 @@
 
         <footer>
             <div style="margin-bottom: 0.75rem;">
-                Based on <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">"Measuring AI Ability to Complete Long Tasks"</a> by METR
+                Based on <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">"Measuring AI Ability to Complete Long Tasks"</a> by METR (Time Horizon v1.1)
                 · <a href="https://metr.org/notes/2026-01-22-time-horizon-limitations/" target="_blank">Limitations</a>
-                · <a href="https://metr.org/assets/benchmark_results.yaml" target="_blank">Raw Data</a>
+                · <a href="https://metr.org/assets/benchmark_results_1_1.yaml" target="_blank">Raw Data</a>
             </div>
             <details style="display: inline-block; text-align: left;">
                 <summary style="cursor: pointer;">Citation</summary>
@@ -913,6 +913,7 @@
     }
 
     const MODEL_NAMES = {
+        // Anthropic - Vivaria (legacy v1.0 keys)
         "claude_3_5_sonnet": "Claude 3.5 Sonnet",
         "claude_3_5_sonnet_20241022": "Claude 3.5 Sonnet (Oct 2024)",
         "claude_3_7_sonnet": "Claude 3.7 Sonnet",
@@ -922,6 +923,14 @@
         "claude_4_sonnet": "Claude 4 Sonnet",
         "claude_sonnet_4_5": "Claude Sonnet 4.5",
         "claude_opus_4_5": "Claude Opus 4.5",
+        // Anthropic - Inspect (v1.1 keys)
+        "claude_3_5_sonnet_20240620_inspect": "Claude 3.5 Sonnet",
+        "claude_3_5_sonnet_20241022_inspect": "Claude 3.5 Sonnet (Oct 2024)",
+        "claude_3_7_sonnet_inspect": "Claude 3.7 Sonnet",
+        "claude_3_opus_inspect": "Claude 3 Opus",
+        "claude_4_opus_inspect": "Claude 4 Opus",
+        "claude_opus_4_5_inspect": "Claude Opus 4.5",
+        // OpenAI - legacy keys
         "gpt2": "GPT-2",
         "gpt_3_5_turbo_instruct": "GPT-3.5 Turbo Instruct",
         "gpt_4": "GPT-4",
@@ -937,6 +946,14 @@
         "o3": "o3",
         "o4-mini": "o4-mini",
         "davinci_002": "Davinci-002",
+        // OpenAI - Inspect (v1.1 keys)
+        "gpt_4_1106_inspect": "GPT-4 Turbo (Nov 2023)",
+        "gpt_4_turbo_inspect": "GPT-4 Turbo",
+        "gpt_4o_inspect": "GPT-4o",
+        "gpt_5_2025_08_07_inspect": "GPT-5",
+        "o1_inspect": "o1",
+        "o3_inspect": "o3",
+        // Other providers
         "deepseek_r1": "DeepSeek R1",
         "deepseek_r1_0528": "DeepSeek R1 (May 2025)",
         "deepseek_v3": "DeepSeek V3",
@@ -2122,7 +2139,7 @@
     let currentAnalysis = null;
 
     async function loadData() {
-        const primaryUrl = 'https://metr.org/assets/benchmark_results.yaml';
+        const primaryUrl = 'https://metr.org/assets/benchmark_results_1_1.yaml';
         // Local fallback - if you cache the YAML locally (e.g., via GitHub Action or cron)
         const localFallback = './benchmark_results.yaml';
 

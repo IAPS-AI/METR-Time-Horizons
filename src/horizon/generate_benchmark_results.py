@@ -3,7 +3,7 @@ Generate benchmark result table in YAML format. This is used by Epoch
 for their dashboard.
 
 Example output:
-benchmark_name: METR-Horizon-v1
+benchmark_name: METR-Horizon-v1.1
 version: 012346789abcdef
 
 results:
@@ -101,10 +101,8 @@ def _get_all_trend_stats(
     )
 
     return {
-        "all_time": {
+        "all_time_stitched": {
             "point_estimate": round(all_time_stats.point_estimate, 3),
-            "ci_low": round(all_time_stats.ci_lower, 3),
-            "ci_high": round(all_time_stats.ci_upper, 3),
         },
         "from_2023_on": {
             "point_estimate": round(from_2023_on_stats.point_estimate, 3),
@@ -186,6 +184,7 @@ def generate_benchmark_metrics(
         if model not in results:
             results[model] = {}
 
+        results[model]["benchmark_name"] = benchmark_name
         results[model]["metrics"] = agent_result
         results[model]["release_date"] = release_dates[agent]
         results[model]["scaffolds"] = list(agent_df["scaffold"].unique())
@@ -245,13 +244,13 @@ def main(
     output_metrics_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Use CLI arguments if provided, otherwise use defaults
-    BENCHMARK_NAME = benchmark_name or "METR-Horizon-v1"
+    BENCHMARK_NAME = benchmark_name or "METR-Horizon-v1.1"
     # Commit hashes for the task manifest files
     BENCHMARK_LONG_TASKS_VERSION = (
-        benchmark_long_tasks_version or "2ce7f1e0c4f8b7f2653e7014941a1a9f3ca908e2"
+        benchmark_long_tasks_version or "799cc9c4b4483a93fc3445623a49ea1bd74fdeb2"
     )
     BENCHMARK_SWAA_VERSION = (
-        benchmark_swaa_version or "3d2ab4f0662a752409858a73e006af35e3fb7d64"
+        benchmark_swaa_version or "f6cc84052e2a79dd540766c8a1b15ff399696371"
     )
 
     logging.basicConfig(
