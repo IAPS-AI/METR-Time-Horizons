@@ -1042,7 +1042,16 @@
             });
         }
 
-        return data.sort((a, b) => a.date - b.date);
+        // Deduplicate by display name, preferring v1.1 over v1.0
+        const byName = new Map();
+        for (const d of data) {
+            const existing = byName.get(d.name);
+            if (!existing || d.benchmarkVersion === 'v1.1') {
+                byName.set(d.name, d);
+            }
+        }
+
+        return [...byName.values()].sort((a, b) => a.date - b.date);
     }
 
     function formatHours(hours) {
