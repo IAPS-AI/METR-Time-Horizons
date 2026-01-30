@@ -318,10 +318,10 @@
                 <label>Fit Data From</label>
                 <select id="fitStartDate">
                     <option value="2019-01-01">2019</option>
-                    <option value="2020-01-01" selected>2020</option>
+                    <option value="2020-01-01">2020</option>
                     <option value="2021-01-01">2021</option>
                     <option value="2022-01-01">2022</option>
-                    <option value="2023-01-01">2023</option>
+                    <option value="2023-01-01" selected>2023</option>
                 </select>
             </div>
 
@@ -731,14 +731,13 @@
     }
 
     /**
-     * Compute doubling time from data
+     * Compute doubling time from data (unweighted OLS, matching METR methodology)
      */
     function computeDoublingTime(data) {
         const x = data.map(d => d.dateNum);
         const y = data.map(d => Math.log(d.horizon));
-        const weights = data.map(d => d.weight);
 
-        const reg = weightedLinearRegression(x, y, weights);
+        const reg = weightedLinearRegression(x, y, null);
         const doublingTime = Math.log(2) / reg.slope;
 
         return doublingTime;
@@ -748,23 +747,22 @@
      * Full regression analysis with bootstrap
      */
     function analyzeData(data, nBootstrap = 2000) {
-        // Prepare data
+        // Prepare data (unweighted OLS, matching METR methodology)
         const x = data.map(d => d.dateNum);
         const y = data.map(d => Math.log(d.horizon));
-        const weights = data.map(d => d.weight);
 
-        // Fit weighted regression
-        const expReg = weightedLinearRegression(x, y, weights);
+        // Fit OLS regression (no weights)
+        const expReg = weightedLinearRegression(x, y, null);
         const doublingTime = Math.log(2) / expReg.slope;
 
         // Also fit linear model for comparison
         const yLinear = data.map(d => d.horizon);
-        const linearReg = weightedLinearRegression(x, yLinear, weights);
+        const linearReg = weightedLinearRegression(x, yLinear, null);
 
         // Calculate AIC for model comparison
         const n = data.length;
-        const rssExp = expReg.residuals.reduce((sum, r, i) => sum + weights[i] * r * r, 0);
-        const rssLinear = linearReg.residuals.reduce((sum, r, i) => sum + weights[i] * r * r, 0);
+        const rssExp = expReg.residuals.reduce((sum, r) => sum + r * r, 0);
+        const rssLinear = linearReg.residuals.reduce((sum, r) => sum + r * r, 0);
         const aicExp = calculateAIC(n, rssExp, 2);
         const aicLinear = calculateAIC(n, rssLinear, 2);
 
@@ -781,8 +779,7 @@
             }
             const bx = sample.map(d => d.dateNum);
             const by = sample.map(d => Math.log(d.horizon));
-            const bw = sample.map(d => d.weight);
-            const bReg = weightedLinearRegression(bx, by, bw);
+            const bReg = weightedLinearRegression(bx, by, null);
             trendlineBootstrap.push(bReg);
         }
 
@@ -1749,8 +1746,7 @@
         if (sotaInRange.length >= 3) {
             const x = sotaInRange.map(d => d.dateNum);
             const y = sotaInRange.map(d => Math.log(d.horizon));
-            const weights = sotaInRange.map(d => d.weight);
-            const reg = weightedLinearRegression(x, y, weights);
+            const reg = weightedLinearRegression(x, y, null);
             doublingTime = Math.log(2) / reg.slope;
             rSquared = reg.rSquared;
             nModels = sotaInRange.length;
@@ -1805,12 +1801,11 @@
         const first = sorted[0];
         const last = sorted[sorted.length - 1];
 
-        // Use weighted linear regression over all points for more robust estimate
+        // Use OLS regression over SOTA v1.1 models (matching METR methodology)
         const x = sorted.map(d => d.dateNum);
         const y = sorted.map(d => Math.log(d.horizon));
-        const weights = sorted.map(d => d.weight || 1);
 
-        const reg = weightedLinearRegression(x, y, weights);
+        const reg = weightedLinearRegression(x, y, null);
 
         if (reg.slope <= 0) {
             resultDiv.className = 'calc-result warning';
