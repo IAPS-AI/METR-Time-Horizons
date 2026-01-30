@@ -362,7 +362,7 @@
                 <div class="stat-value" id="doublingTime">—</div>
                 <div class="stat-ci" id="doublingTimeCI"></div>
                 <div class="stat-detail" id="doublingTimeDetail"></div>
-                <div class="stat-detail" style="margin-top: 0.25rem; font-style: italic;">Fitted to v1.1 data only</div>
+                <div class="stat-detail" style="margin-top: 0.25rem; font-style: italic;">Fitted to v1.1 SOTA models only (METR methodology)</div>
             </div>
 
             <div class="stat-card">
@@ -1739,9 +1739,33 @@
             return;
         }
 
-        const logRatio = Math.log2(later.horizon / earlier.horizon);
-        const doublingTime = daysBetween / logRatio;
+        // Use METR methodology: weighted regression over SOTA v1.1 models in the date range
+        const sotaInRange = data.filter(d =>
+            d.date >= earlier.date && d.date <= later.date &&
+            d.benchmarkVersion === 'v1.1' && d.isSota
+        );
+
+        let doublingTime, rSquared, nModels;
+        if (sotaInRange.length >= 3) {
+            const x = sotaInRange.map(d => d.dateNum);
+            const y = sotaInRange.map(d => Math.log(d.horizon));
+            const weights = sotaInRange.map(d => d.weight);
+            const reg = weightedLinearRegression(x, y, weights);
+            doublingTime = Math.log(2) / reg.slope;
+            rSquared = reg.rSquared;
+            nModels = sotaInRange.length;
+        } else {
+            // Fallback to pairwise if not enough SOTA models
+            const logRatio = Math.log2(later.horizon / earlier.horizon);
+            doublingTime = daysBetween / logRatio;
+            rSquared = null;
+            nModels = 2;
+        }
         const months = doublingTime / 30.44;
+
+        const methodNote = rSquared !== null
+            ? `Regression over ${nModels} SOTA v1.1 models (R² = ${rSquared.toFixed(2)})`
+            : `Pairwise estimate (fewer than 3 SOTA v1.1 models in range)`;
 
         resultDiv.className = 'calc-result';
         resultDiv.innerHTML = `
@@ -1749,7 +1773,8 @@
             <span style="color: #64748b; font-size: 0.9rem;">
                 ${earlier.name} → ${later.name}<br>
                 ${daysBetween.toFixed(0)} days elapsed |
-                ${formatHours(earlier.horizon)} → ${formatHours(later.horizon)} (${(later.horizon/earlier.horizon).toFixed(1)}x)
+                ${formatHours(earlier.horizon)} → ${formatHours(later.horizon)} (${(later.horizon/earlier.horizon).toFixed(1)}x)<br>
+                ${methodNote}
             </span>
         `;
         resultDiv.style.display = 'block';
@@ -1766,8 +1791,8 @@
             return;
         }
 
-        // Find models in range
-        const modelsInRange = data.filter(d => d.date >= startDate && d.date <= endDate);
+        // Find SOTA v1.1 models in range (matches METR methodology)
+        const modelsInRange = data.filter(d => d.date >= startDate && d.date <= endDate && d.benchmarkVersion === 'v1.1' && d.isSota);
 
         if (modelsInRange.length < 2) {
             resultDiv.className = 'calc-result warning';
@@ -2261,16 +2286,16 @@
         // Parse all data
         const allData = parseYAMLData(rawData, horizonType);
 
-        // Filter for fitting: only use v1.1 data for trendline to avoid mixing task suites
-        const fitData = allData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1');
+        // Filter for fitting: only SOTA models from v1.1 data (matches METR methodology)
+        const fitData = allData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1' && d.isSota);
 
         if (fitData.length < 4) {
             document.getElementById('plot').innerHTML =
-                '<div class="loading">Not enough v1.1 data points for analysis. Adjust the fit start date.</div>';
+                '<div class="loading">Not enough v1.1 SOTA data points for analysis. Adjust the fit start date.</div>';
             return;
         }
 
-        // Run analysis (trendline fitted to v1.1 data only)
+        // Run analysis (trendline fitted to v1.1 SOTA data only, matching METR methodology)
         currentData = allData;
         currentAnalysis = analyzeData(fitData, showBootstrap ? 2000 : 100);
         const oosResult = outOfSampleTest(fitData);
@@ -2338,7 +2363,7 @@
         document.getElementById('targetHorizon').addEventListener('change', () => {
             if (currentAnalysis && currentData) {
                 const fitStartDate = new Date(document.getElementById('fitStartDate').value);
-                const fitData = currentData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1');
+                const fitData = currentData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1' && d.isSota);
                 updateMilestoneCalc(currentAnalysis, fitData);
             }
         });
