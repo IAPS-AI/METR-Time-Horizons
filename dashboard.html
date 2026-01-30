@@ -1018,9 +1018,8 @@
             const isOpen = isOpenModel(modelId, family);
             const country = getModelCountry(modelId, family);
 
-            // Determine benchmark version from per-model field or top-level name
-            const bmName = modelData.benchmark_name || yamlData.benchmark_name || '';
-            const benchmarkVersion = bmName.includes('1.1') ? 'v1.1' : bmName.includes('1.0') ? 'v1.0' : (bmName.includes('v1') ? 'v1.0' : 'v1.0');
+            // Source version stamped during merge in loadData()
+            const benchmarkVersion = modelData._sourceVersion || 'v1.0';
 
             data.push({
                 id: modelId,
@@ -2218,12 +2217,17 @@
         }
 
         // Merge: start with v1.0 results, then overlay v1.1 (v1.1 takes precedence)
+        // Stamp each model with its source version
         const mergedResults = {};
         if (data_v1_0?.results) {
-            Object.assign(mergedResults, data_v1_0.results);
+            for (const [key, val] of Object.entries(data_v1_0.results)) {
+                mergedResults[key] = { ...val, _sourceVersion: 'v1.0' };
+            }
         }
         if (data_v1_1?.results) {
-            Object.assign(mergedResults, data_v1_1.results);
+            for (const [key, val] of Object.entries(data_v1_1.results)) {
+                mergedResults[key] = { ...val, _sourceVersion: 'v1.1' };
+            }
         }
 
         rawData = {
