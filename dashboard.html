@@ -588,7 +588,7 @@
             <div style="font-size: 0.85rem; color: #64748b; line-height: 1.7;">
                 <p><strong>Time Horizon:</strong> The amount of serial human labor (on software/research tasks) that AI can replace at the selected success rate. A 50% time horizon of 4 hours means the model succeeds 50% of the time on tasks that take skilled humans 4 hours to complete.</p>
                 <p style="margin-top: 0.75rem;"><strong>Key Limitations:</strong> Individual model estimates have wide confidence intervals (~2x in each direction). Performance varies dramatically across domains — these benchmarks focus on software and research tasks. The long-term trend slope is more robust than specific model measurements. Success rates don't directly translate to automation viability; reliability-critical applications may require 98%+ accuracy. See <a href="https://metr.org/notes/2026-01-22-time-horizon-limitations/" target="_blank" style="color: #3b82f6;">METR's detailed limitations notes</a>.</p>
-                <p style="margin-top: 0.75rem;"><strong>Weighted Least Squares:</strong> Each model is weighted by the inverse variance of its horizon estimate (derived from 95% CI). Models with tighter confidence intervals have more influence on the fit.</p>
+                <p style="margin-top: 0.75rem;"><strong>Ordinary Least Squares:</strong> The trendline is fit using unweighted OLS regression on ln(horizon) vs date, matching METR's methodology. Only SOTA models (those achieving the highest time horizon at their release date) from the v1.1 benchmark are included in the fit.</p>
                 <p style="margin-top: 0.75rem;"><strong>Bootstrap Confidence Intervals:</strong> 2000 bootstrap resamples are used to estimate uncertainty in the doubling time and trendline. The 95% CI represents the 2.5th and 97.5th percentiles of the bootstrap distribution.</p>
                 <p style="margin-top: 0.75rem;"><strong>Prediction Intervals:</strong> The shaded projection region combines trend uncertainty (from bootstrap) with residual variance, giving proper prediction intervals for future observations.</p>
                 <p style="margin-top: 0.75rem;"><strong>Model Comparison:</strong> Exponential and linear models are compared using AIC (Akaike Information Criterion). Lower AIC indicates better fit accounting for model complexity.</p>
@@ -814,11 +814,10 @@
         const trainData = sorted.slice(0, -nHoldout);
         const testData = sorted.slice(-nHoldout);
 
-        // Fit on training data
+        // Fit on training data (unweighted OLS)
         const x = trainData.map(d => d.dateNum);
         const y = trainData.map(d => Math.log(d.horizon));
-        const weights = trainData.map(d => d.weight);
-        const reg = weightedLinearRegression(x, y, weights);
+        const reg = weightedLinearRegression(x, y, null);
 
         // Predict on test data
         const predictions = testData.map(d => ({
@@ -1199,10 +1198,8 @@
 
         const x = frontier.map(d => d.dateNum);
         const y = frontier.map(d => Math.log(d.horizon));
-        // Use actual weights from data for consistency with main analysis
-        const weights = frontier.map(d => d.weight || 1);
 
-        const reg = weightedLinearRegression(x, y, weights);
+        const reg = weightedLinearRegression(x, y, null);
         const doublingTimeDays = Math.log(2) / reg.slope;
 
         return {
