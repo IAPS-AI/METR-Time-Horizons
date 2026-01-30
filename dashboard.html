@@ -362,7 +362,7 @@
                 <div class="stat-value" id="doublingTime">—</div>
                 <div class="stat-ci" id="doublingTimeCI"></div>
                 <div class="stat-detail" id="doublingTimeDetail"></div>
-                <div class="stat-detail" style="margin-top: 0.25rem; font-style: italic;">Trend slope is more robust than individual model estimates</div>
+                <div class="stat-detail" style="margin-top: 0.25rem; font-style: italic;">Fitted to v1.1 data only</div>
             </div>
 
             <div class="stat-card">
@@ -2257,16 +2257,16 @@
         // Parse all data
         const allData = parseYAMLData(rawData, horizonType);
 
-        // Filter for fitting
-        const fitData = allData.filter(d => d.date >= fitStartDate);
+        // Filter for fitting: only use v1.1 data for trendline to avoid mixing task suites
+        const fitData = allData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1');
 
         if (fitData.length < 4) {
             document.getElementById('plot').innerHTML =
-                '<div class="loading">Not enough data points for analysis. Adjust the fit start date.</div>';
+                '<div class="loading">Not enough v1.1 data points for analysis. Adjust the fit start date.</div>';
             return;
         }
 
-        // Run analysis
+        // Run analysis (trendline fitted to v1.1 data only)
         currentData = allData;
         currentAnalysis = analyzeData(fitData, showBootstrap ? 2000 : 100);
         const oosResult = outOfSampleTest(fitData);
@@ -2334,7 +2334,7 @@
         document.getElementById('targetHorizon').addEventListener('change', () => {
             if (currentAnalysis && currentData) {
                 const fitStartDate = new Date(document.getElementById('fitStartDate').value);
-                const fitData = currentData.filter(d => d.date >= fitStartDate);
+                const fitData = currentData.filter(d => d.date >= fitStartDate && d.benchmarkVersion === 'v1.1');
                 updateMilestoneCalc(currentAnalysis, fitData);
             }
         });
