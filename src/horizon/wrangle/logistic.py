@@ -208,8 +208,9 @@ def run_logistic_regressions(
             unique_task_sources
         ), "All excluded task sources must be present in the data"
         logger.info(f"Excluding task sources: {excluding_task_sources}")
+        len_before = len(runs)
         runs = runs[~runs["task_source"].isin(excluding_task_sources)]
-        num_excluded = len(runs) - len(unique_task_sources)
+        num_excluded = len_before - len(runs)
         logger.info(
             f"Excluded {num_excluded} tasks with the sources {excluding_task_sources}"
         )

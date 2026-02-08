@@ -143,15 +143,20 @@ def handle_human_agent(
 
 
 def _add_invsqrt_task_weight(original_df: pd.DataFrame) -> pd.DataFrame:
-    """Weight the task families for an agent by the inverse square root of the number of tasks in each family."""
+    """Weight the task families for an agent by the inverse square root of the number of tasks in each family.
+
+    Matches the weighting scheme in compute_task_weights.py: each run gets
+    (1 / n_runs_in_task) * (1 / sqrt(n_tasks_in_family)), then normalized to sum to 1.
+    """
     df = original_df.copy()
     task_family_counts = defaultdict(int)
     for task_id in df["task_id"].unique():
         family = task_id.split("/")[0]
         task_family_counts[family] += 1
 
-    df["invsqrt_task_weight"] = df["task_family"].apply(
-        lambda x: 1 / np.sqrt(task_family_counts[x]) * 1 / len(df["task_id"].unique())
+    runs_per_task = df.groupby("task_id")["task_id"].transform("count")
+    df["invsqrt_task_weight"] = (
+        (1 / runs_per_task) * df["task_family"].map(lambda x: 1 / np.sqrt(task_family_counts[x]))
     )
     df["invsqrt_task_weight"] = (
         df["invsqrt_task_weight"] / df["invsqrt_task_weight"].sum()
@@ -160,8 +165,13 @@ def _add_invsqrt_task_weight(original_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _add_equal_task_weight(df: pd.DataFrame) -> pd.DataFrame:
-    """Weight the tasks equally."""
-    df["equal_task_weight"] = 1
+    """Weight the tasks equally.
+
+    Each run gets 1 / n_runs_in_task so that each task has equal total weight,
+    matching the scheme in compute_task_weights.py.
+    """
+    runs_per_task = df.groupby("task_id")["task_id"].transform("count")
+    df["equal_task_weight"] = 1 / runs_per_task
     df["equal_task_weight"] = df["equal_task_weight"] / df["equal_task_weight"].sum()
     return df
 
