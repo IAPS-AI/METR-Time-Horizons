@@ -1,18 +1,28 @@
-benchmark_name: METR-Horizon-v1
+benchmark_name: METR-Horizon-v1.0
+doubling_time_in_days:
+  all_time:
+    ci_high: 223.07
+    ci_low: 161.983
+    point_estimate: 195.823
+  from_2023_on:
+    ci_high: 211.248
+    ci_low: 129.047
+    point_estimate: 165.251
 long_tasks_version: 2ce7f1e0c4f8b7f2653e7014941a1a9f3ca908e2
 results:
   claude_3_5_sonnet:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.481203
       is_sota: true
       p50_horizon_length:
-        ci_high: 34.387194
-        ci_low: 9.466023
+        ci_high: 34.387461
+        ci_low: 9.684413
         estimate: 18.683233
       p80_horizon_length:
-        ci_high: 7.063943
-        ci_low: 1.306563
+        ci_high: 7.224147
+        ci_low: 1.364151
         estimate: 3.145649
       usage:
         usd: 196.56511410714285
@@ -22,17 +32,18 @@ results:
     - modular-public
     - null
   claude_3_5_sonnet_20241022:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.530535
       is_sota: true
       p50_horizon_length:
-        ci_high: 59.058879
-        ci_low: 14.031849
+        ci_high: 59.125871
+        ci_low: 13.874047
         estimate: 29.575983
       p80_horizon_length:
-        ci_high: 11.075156
-        ci_low: 1.718093
+        ci_high: 11.507862
+        ci_low: 1.760823
         estimate: 4.595975
       usage:
         usd: 161.71823225000003
@@ -42,17 +53,18 @@ results:
     - modular-public
     - null
   claude_3_7_sonnet:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.605035
       is_sota: true
       p50_horizon_length:
-        ci_high: 93.424004
-        ci_low: 29.33067
+        ci_high: 93.543437
+        ci_low: 27.560701
         estimate: 56.09162
       p80_horizon_length:
-        ci_high: 31.035012
-        ci_low: 6.032292
+        ci_high: 31.566646
+        ci_low: 5.496011
         estimate: 15.226294
       usage:
         usd: 207.87939662355143
@@ -62,17 +74,18 @@ results:
     - flock-public
     - null
   claude_3_opus:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.377459
       is_sota: false
       p50_horizon_length:
-        ci_high: 12.897461
-        ci_low: 2.90612
+        ci_high: 13.026183
+        ci_low: 2.824149
         estimate: 6.405197
       p80_horizon_length:
-        ci_high: 2.824986
-        ci_low: 0.427
+        ci_high: 2.791879
+        ci_low: 0.424844
         estimate: 1.125839
       usage:
         usd: 567.2268110089286
@@ -82,17 +95,18 @@ results:
     - modular-public
     - null
   claude_4_1_opus:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.677469
       is_sota: true
       p50_horizon_length:
-        ci_high: 209.192356
-        ci_low: 57.552638
+        ci_high: 215.016532
+        ci_low: 56.182467
         estimate: 113.68507
       p80_horizon_length:
-        ci_high: 49.261019
-        ci_low: 7.519347
+        ci_high: 49.705181
+        ci_low: 7.036077
         estimate: 21.891731
       usage:
         usd: 1800.8850575000001
@@ -102,17 +116,18 @@ results:
     - flock-public
     - null
   claude_4_opus:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.648693
       is_sota: false
       p50_horizon_length:
-        ci_high: 146.803709
-        ci_low: 45.062156
+        ci_high: 143.508131
+        ci_low: 44.49252
         estimate: 85.556627
       p80_horizon_length:
-        ci_high: 44.099938
-        ci_low: 7.853497
+        ci_high: 43.609019
+        ci_low: 7.169095
         estimate: 20.879157
       usage:
         usd: 813.0177021666666
@@ -122,17 +137,18 @@ results:
     - flock-public
     - null
   claude_4_sonnet:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.632651
       is_sota: false
       p50_horizon_length:
-        ci_high: 133.985642
-        ci_low: 37.850721
+        ci_high: 132.288482
+        ci_low: 38.229706
         estimate: 74.942015
       p80_horizon_length:
-        ci_high: 36.743467
-        ci_low: 6.26905
+        ci_high: 36.63532
+        ci_low: 6.236917
         estimate: 17.088888
       usage:
         usd: 155.26644238214283
@@ -141,18 +157,40 @@ results:
     scaffolds:
     - flock-public
     - null
+  claude_opus_4_5:
+    benchmark_name: METR-Horizon-v1.0
+    metrics:
+      average_score:
+        estimate: 0.74969
+      is_sota: true
+      p50_horizon_length:
+        ci_high: 1268.334524
+        ci_low: 110.336869
+        estimate: 288.904952
+      p80_horizon_length:
+        ci_high: 87.871794
+        ci_low: 6.038407
+        estimate: 27.159829
+      usage:
+        usd: 859.1299301666668
+        working_time: 6916.647208333334
+    release_date: 2025-11-24
+    scaffolds:
+    - flock-public
+    - metr_tasks_swaa/init_solver,metr_tasks_swaa/swaa_solver
   claude_sonnet_4_5:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.683012
       is_sota: false
       p50_horizon_length:
-        ci_high: 254.328258
-        ci_low: 56.041225
+        ci_high: 251.711192
+        ci_low: 58.894516
         estimate: 121.946588
       p80_horizon_length:
-        ci_high: 53.079511
-        ci_low: 6.68528
+        ci_high: 54.445114
+        ci_low: 6.387425
         estimate: 21.179254
       usage:
         usd: 438.996314
@@ -161,38 +199,19 @@ results:
     scaffolds:
     - flock-public
     - null
-  claude_opus_4_5:
-    metrics:
-      p50_horizon_length:
-        estimate: 288.904952
-        ci_low: 108.873592
-        ci_high: 1225.190511
-      p80_horizon_length:
-        estimate: 27.159829
-        ci_low: 6.887202
-        ci_high: 85.811317
-      average_score:
-        estimate: 0.74969
-      usage:
-        working_time: 6916.647208333334
-        usd: 859.1299301666668
-      is_sota: true
-    release_date: 2025-11-24
-    scaffolds:
-    - flock-public
-    - metr_tasks_swaa/init_solver,metr_tasks_swaa/swaa_solver
   davinci_002:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.161869
       is_sota: true
       p50_horizon_length:
-        ci_high: 0.244214
-        ci_low: 0.06737
+        ci_high: 0.246039
+        ci_low: 0.07102
         estimate: 0.148793
       p80_horizon_length:
-        ci_high: 0.063065
-        ci_low: 0.01249
+        ci_high: 0.062221
+        ci_low: 0.013154
         estimate: 0.034139
       usage:
         usd: 66.11363827325752
@@ -202,17 +221,18 @@ results:
     - modular-public
     - null
   deepseek_r1:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.520133
       is_sota: false
       p50_horizon_length:
-        ci_high: 50.923844
-        ci_low: 13.49502
+        ci_high: 51.751854
+        ci_low: 13.417042
         estimate: 26.923538
       p80_horizon_length:
-        ci_high: 9.756762
-        ci_low: 1.786525
+        ci_high: 9.861583
+        ci_low: 1.807245
         estimate: 4.337051
       usage:
         usd: 291.3790981643849
@@ -222,17 +242,18 @@ results:
     - flock-public
     - null
   deepseek_r1_0528:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.542232
       is_sota: false
       p50_horizon_length:
-        ci_high: 65.788856
-        ci_low: 13.39273
+        ci_high: 65.418001
+        ci_low: 12.955859
         estimate: 32.174234
       p80_horizon_length:
-        ci_high: 11.896534
-        ci_low: 1.120036
+        ci_high: 11.906328
+        ci_low: 1.07668
         estimate: 3.773744
       usage:
         usd: 190.18930876478174
@@ -242,17 +263,18 @@ results:
     - flock-public
     - null
   deepseek_v3:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.474508
       is_sota: false
       p50_horizon_length:
-        ci_high: 33.901815
-        ci_low: 9.008161
+        ci_high: 33.640618
+        ci_low: 9.175229
         estimate: 18.484012
       p80_horizon_length:
-        ci_high: 8.571598
-        ci_low: 1.527662
+        ci_high: 8.915876
+        ci_low: 1.584411
         estimate: 3.843563
       usage:
         usd: 70.3799213217857
@@ -262,17 +284,18 @@ results:
     - flock-public
     - null
   deepseek_v3_0324:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.497576
       is_sota: false
       p50_horizon_length:
-        ci_high: 41.602775
-        ci_low: 11.819858
+        ci_high: 41.911619
+        ci_low: 11.463488
         estimate: 23.2605
       p80_horizon_length:
-        ci_high: 10.950042
-        ci_low: 2.346439
+        ci_high: 10.889955
+        ci_low: 2.3423
         estimate: 5.264575
       usage:
         usd: 4.137916762500001
@@ -282,17 +305,18 @@ results:
     - flock-public
     - null
   gemini_2_5_pro_preview:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.557925
       is_sota: false
       p50_horizon_length:
-        ci_high: 70.560939
-        ci_low: 19.978577
+        ci_high: 72.272862
+        ci_low: 19.024625
         estimate: 39.527421
       p80_horizon_length:
-        ci_high: 19.93351
-        ci_low: 3.842313
+        ci_high: 19.992388
+        ci_low: 3.492575
         estimate: 9.308417
       usage:
         usd: 276.57266435267854
@@ -302,17 +326,18 @@ results:
     - flock-public
     - null
   gpt-oss-120b:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.574566
       is_sota: false
       p50_horizon_length:
-        ci_high: 88.228555
-        ci_low: 19.560806
+        ci_high: 89.327284
+        ci_low: 19.138835
         estimate: 44.754917
       p80_horizon_length:
-        ci_high: 17.612315
-        ci_low: 2.140896
+        ci_high: 17.252539
+        ci_low: 1.976889
         estimate: 6.651343
       usage:
         usd: 12.916714238666668
@@ -322,17 +347,18 @@ results:
     - flock-public
     - null
   gpt2:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.101046
       is_sota: true
       p50_horizon_length:
-        ci_high: 0.130415
-        ci_low: 0.001939
+        ci_high: 0.130397
+        ci_low: 0.002019
         estimate: 0.039762
       p80_horizon_length:
-        ci_high: 0.027466
-        ci_low: 0.000134
+        ci_high: 0.026215
+        ci_low: 0.000151
         estimate: 0.005652
       usage:
         usd: 0.0001664748
@@ -341,17 +367,18 @@ results:
     scaffolds:
     - null
   gpt_3_5_turbo_instruct:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.214611
       is_sota: true
       p50_horizon_length:
-        ci_high: 1.014481
-        ci_low: 0.258326
+        ci_high: 0.989884
+        ci_low: 0.227348
         estimate: 0.604245
       p80_horizon_length:
-        ci_high: 0.296838
-        ci_low: 0.05824
+        ci_high: 0.285643
+        ci_low: 0.051881
         estimate: 0.1731
       usage:
         usd: 24.984426026785716
@@ -361,17 +388,18 @@ results:
     - modular-public
     - null
   gpt_4:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.361067
       is_sota: true
       p50_horizon_length:
-        ci_high: 10.267319
-        ci_low: 2.515004
+        ci_high: 10.30277
+        ci_low: 2.466352
         estimate: 5.35186
       p80_horizon_length:
-        ci_high: 2.233331
-        ci_low: 0.365612
+        ci_high: 2.28028
+        ci_low: 0.363683
         estimate: 0.965652
       usage:
         usd: 6677.047423285714
@@ -381,17 +409,18 @@ results:
     - modular-public
     - null
   gpt_4_0125:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.351726
       is_sota: false
       p50_horizon_length:
-        ci_high: 9.916649
-        ci_low: 2.727924
+        ci_high: 9.745275
+        ci_low: 2.768386
         estimate: 5.358292
       p80_horizon_length:
-        ci_high: 2.511169
-        ci_low: 0.525985
+        ci_high: 2.520882
+        ci_low: 0.543249
         estimate: 1.198598
       usage:
         usd: 484.9183230654762
@@ -401,17 +430,18 @@ results:
     - modular-public
     - null
   gpt_4_1106:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.404329
       is_sota: true
       p50_horizon_length:
-        ci_high: 16.377055
-        ci_low: 4.083815
+        ci_high: 16.149521
+        ci_low: 4.048037
         estimate: 8.525919
       p80_horizon_length:
-        ci_high: 3.487353
-        ci_low: 0.582505
+        ci_high: 3.621625
+        ci_low: 0.559216
         estimate: 1.452328
       usage:
         usd: 876.2933317857143
@@ -421,17 +451,18 @@ results:
     - modular-public
     - null
   gpt_4_turbo:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.367357
       is_sota: false
       p50_horizon_length:
-        ci_high: 12.172031
-        ci_low: 3.323453
+        ci_high: 12.130269
+        ci_low: 3.260933
         estimate: 6.55686
       p80_horizon_length:
-        ci_high: 3.227611
-        ci_low: 0.697755
+        ci_high: 3.301852
+        ci_low: 0.685228
         estimate: 1.524697
       usage:
         usd: 490.97356972222224
@@ -441,17 +472,18 @@ results:
     - modular-public
     - null
   gpt_4o:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.408517
       is_sota: true
       p50_horizon_length:
-        ci_high: 18.25284
-        ci_low: 4.424494
+        ci_high: 18.096326
+        ci_low: 4.372392
         estimate: 9.178848
       p80_horizon_length:
-        ci_high: 3.860568
-        ci_low: 0.715974
+        ci_high: 3.756826
+        ci_low: 0.684463
         estimate: 1.676437
       usage:
         usd: 188.9252092261905
@@ -461,17 +493,18 @@ results:
     - modular-public
     - null
   gpt_5:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.698403
       is_sota: true
       p50_horizon_length:
-        ci_high: 272.794289
-        ci_low: 67.141734
+        ci_high: 281.40219
+        ci_low: 68.173974
         estimate: 137.735311
       p80_horizon_length:
-        ci_high: 63.553851
-        ci_low: 8.821782
+        ci_high: 67.055199
+        ci_low: 8.64073
         estimate: 26.566128
       usage:
         usd: 58.95094499999999
@@ -481,17 +514,18 @@ results:
     - flock-secret
     - null
   gpt_5_1_codex_max:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.721134
       is_sota: true
       p50_horizon_length:
-        ci_high: 378.398454
-        ci_low: 78.787471
+        ci_high: 410.751288
+        ci_low: 80.785932
         estimate: 173.253623
       p80_horizon_length:
-        ci_high: 84.563312
-        ci_low: 9.497828
+        ci_high: 86.855869
+        ci_low: 8.773519
         estimate: 32.349982
       usage:
         usd: 112.1041775
@@ -501,17 +535,18 @@ results:
     - flock-camel
     - metr_tasks_swaa/init_solver,generate
   grok_4:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.667187
       is_sota: true
       p50_horizon_length:
-        ci_high: 231.789541
-        ci_low: 48.077568
+        ci_high: 235.073147
+        ci_low: 47.594303
         estimate: 109.172956
       p80_horizon_length:
-        ci_high: 42.591772
-        ci_low: 4.372209
+        ci_high: 42.318249
+        ci_low: 3.958484
         estimate: 15.296487
       usage:
         usd: 229.33893247470172
@@ -521,17 +556,18 @@ results:
     - flock-public
     - null
   kimi_k2_thinking:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.60027
       is_sota: false
       p50_horizon_length:
-        ci_high: 105.549733
-        ci_low: 26.905286
+        ci_high: 104.906772
+        ci_low: 25.923691
         estimate: 57.599525
       p80_horizon_length:
-        ci_high: 28.953145
-        ci_low: 3.654387
+        ci_high: 29.023371
+        ci_low: 3.385933
         estimate: 11.643752
       usage:
         usd: 264.2665219908333
@@ -541,17 +577,18 @@ results:
     - flock-public
     - metr_tasks_swaa/init_solver,generate
   o1_elicited:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.56549
       is_sota: true
       p50_horizon_length:
-        ci_high: 82.905448
-        ci_low: 17.57554
+        ci_high: 87.380334
+        ci_low: 18.696036
         estimate: 41.05291
       p80_horizon_length:
-        ci_high: 16.665466
-        ci_low: 1.902054
+        ci_high: 17.209627
+        ci_low: 1.989092
         estimate: 6.071816
       usage:
         usd: 1919.4135625892857
@@ -561,17 +598,18 @@ results:
     - flock
     - null
   o1_preview:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.492955
       is_sota: true
       p50_horizon_length:
-        ci_high: 38.631113
-        ci_low: 11.401374
+        ci_high: 38.702715
+        ci_low: 11.56122
         estimate: 21.960172
       p80_horizon_length:
-        ci_high: 9.432596
-        ci_low: 2.039112
+        ci_high: 9.426404
+        ci_low: 1.999469
         estimate: 4.609009
       usage:
         usd: 3255.6205825982142
@@ -581,17 +619,18 @@ results:
     - duet
     - null
   o3:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.658782
       is_sota: true
       p50_horizon_length:
-        ci_high: 166.825336
-        ci_low: 48.011179
+        ci_high: 164.767821
+        ci_low: 47.539727
         estimate: 94.005541
       p80_horizon_length:
-        ci_high: 48.234031
-        ci_low: 7.922786
+        ci_high: 48.557033
+        ci_low: 7.103944
         estimate: 21.431305
       usage:
         usd: 28.148351428571434
@@ -601,17 +640,18 @@ results:
     - flock-secret
     - null
   o4-mini:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.642837
       is_sota: false
       p50_horizon_length:
-        ci_high: 154.6773
-        ci_low: 36.901739
+        ci_high: 148.634699
+        ci_low: 36.561111
         estimate: 78.591387
       p80_horizon_length:
-        ci_high: 38.680785
-        ci_low: 5.56953
+        ci_high: 38.986018
+        ci_low: 5.289783
         estimate: 15.941371
       usage:
         usd: 7.620452842857144
@@ -621,17 +661,18 @@ results:
     - flock-secret
     - null
   qwen_2_5_72b:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.357771
       is_sota: false
       p50_horizon_length:
-        ci_high: 10.30597
-        ci_low: 2.409497
+        ci_high: 10.57126
+        ci_low: 2.249906
         estimate: 5.155558
       p80_horizon_length:
-        ci_high: 2.218681
-        ci_low: 0.373154
+        ci_high: 2.340848
+        ci_low: 0.343237
         estimate: 0.933954
       usage:
         usd: 15.041738861366884
@@ -641,17 +682,18 @@ results:
     - flock-public
     - null
   qwen_2_72b:
+    benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.298999
       is_sota: false
       p50_horizon_length:
-        ci_high: 4.847204
-        ci_low: 0.853072
+        ci_high: 4.761753
+        ci_low: 0.790618
         estimate: 2.243232
       p80_horizon_length:
-        ci_high: 1.080862
-        ci_low: 0.12378
+        ci_high: 1.031655
+        ci_low: 0.114729
         estimate: 0.424743
       usage:
         usd: 81.01079996863636
