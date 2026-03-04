@@ -31,11 +31,28 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push if changed
-        if: steps.check.outputs.changed == 'true'
+      - name: Write data status file
+        run: |
+          CHANGED=${{ steps.check.outputs.changed }}
+          NOW=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          if [ "$CHANGED" = "true" ]; then
+            # Data changed — update both timestamps
+            echo "{\"lastChecked\":\"$NOW\",\"lastUpdated\":\"$NOW\",\"dataChanged\":true}" > data-status.json
+          else
+            # No change — preserve the existing lastUpdated, update lastChecked
+            PREV_UPDATED=$(python3 -c "import json,sys; d=json.load(open('data-status.json')); print(d['lastUpdated'])" 2>/dev/null || echo "$NOW")
+            echo "{\"lastChecked\":\"$NOW\",\"lastUpdated\":\"$PREV_UPDATED\",\"dataChanged\":false}" > data-status.json
+          fi
+
+      - name: Commit and push
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add benchmark_results_1_0.yaml benchmark_results_1_1.yaml
-          git commit -m "Update benchmark data $(date -u +'%Y-%m-%d')"
-          git push
+          git add data-status.json
+          if [ "${{ steps.check.outputs.changed }}" = "true" ]; then
+            git add benchmark_results_1_0.yaml benchmark_results_1_1.yaml
+          fi
+          git diff --cached --quiet || {
+            git commit -m "Update benchmark data $(date -u +'%Y-%m-%d')"
+            git push
+          }

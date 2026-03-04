@@ -624,15 +624,9 @@
                 · <a href="https://metr.org/notes/2026-01-22-time-horizon-limitations/" target="_blank">Limitations</a>
                 · <a href="https://metr.org/assets/benchmark_results_1_1.yaml" target="_blank">Raw Data</a>
             </div>
-            <details style="display: inline-block; text-align: left;">
-                <summary style="cursor: pointer;">Citation</summary>
-                <pre style="background: #f1f5f9; padding: 1rem; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; text-align: left; margin-top: 0.5rem;">@article{metr2025horizon,
-  title={Measuring AI Ability to Complete Long Tasks},
-  author={METR},
-  journal={arXiv preprint arXiv:2503.14499},
-  year={2025}
-}</pre>
-            </details>
+            <div id="dataFreshness" style="font-size: 0.8rem; color: #94a3b8;">
+                Loading data freshness info…
+            </div>
         </footer>
     </div>
 
@@ -2312,9 +2306,58 @@
         updateGapAnalysis(allData);
     }
 
+    async function updateDataFreshness() {
+        const el = document.getElementById('dataFreshness');
+
+        try {
+            // data-status.json is written by the daily GitHub Action
+            const res = await fetch('./data-status.json');
+            if (!res.ok) throw new Error(`Failed to load data-status.json (${res.status})`);
+            const status = await res.json();
+
+            const lastUpdated = new Date(status.lastUpdated);
+            const lastChecked = new Date(status.lastChecked);
+            const now = new Date();
+            const daysSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60 * 24);
+            const daysSinceCheck = (now - lastChecked) / (1000 * 60 * 60 * 24);
+
+            const formatDate = (d) =>
+                d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+            const relativeTime = (days) => {
+                const d = Math.floor(days);
+                return d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
+            };
+
+            let statusDot, statusText;
+            if (daysSinceCheck < 2) {
+                // Action ran recently — data is current
+                statusDot = '#22c55e'; // green
+                statusText = 'Up to date';
+            } else if (daysSinceCheck < 7) {
+                statusDot = '#f59e0b'; // amber
+                statusText = 'Auto-update may be delayed';
+            } else {
+                statusDot = '#ef4444'; // red
+                statusText = 'Auto-update appears inactive';
+            }
+
+            el.innerHTML = [
+                `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${statusDot};margin-right:4px;vertical-align:middle;"></span>`,
+                `<strong>${statusText}</strong>`,
+                ` · Data last updated ${formatDate(lastUpdated)} (${relativeTime(daysSinceUpdate)})`,
+                ` · Last checked ${formatDate(lastChecked)} (${relativeTime(daysSinceCheck)})`,
+            ].join('');
+        } catch (err) {
+            console.log('Data freshness check failed:', err.message);
+            el.textContent = 'Unable to check data freshness';
+        }
+    }
+
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
         loadData();
+        updateDataFreshness();
 
         // Control changes
         ['horizonType', 'fitStartDate', 'endYear', 'showCI', 'showProjection', 'showBootstrap'].forEach(id => {
