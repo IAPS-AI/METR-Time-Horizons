@@ -2311,7 +2311,7 @@
 
         try {
             // data-status.json is written by the daily GitHub Action
-            const res = await fetch('./data-status.json');
+            const res = await fetch(`./data-status.json?v=${Date.now()}`);
             if (!res.ok) throw new Error(`Failed to load data-status.json (${res.status})`);
             const status = await res.json();
 
