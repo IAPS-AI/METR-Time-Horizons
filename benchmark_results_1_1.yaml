@@ -236,6 +236,27 @@ results:
     - re_bench_common/init_solver,use_tools,metr_agents/react
     - metr_tasks_swaa/init_solver,generate
     - metr_agents/react
+  gemini_3_1_pro:
+    benchmark_name: METR-Horizon-v1.1
+    metrics:
+      average_score:
+        estimate: 0.77035
+      is_sota: false
+      p50_horizon_length:
+        ci_high: 694.750898
+        ci_low: 233.50073
+        estimate: 384.147435
+      p80_horizon_length:
+        ci_high: 158.618017
+        ci_low: 52.025934
+        estimate: 89.801503
+    release_date: 2026-02-19
+    scaffolds:
+    - mtb/start_metr_task,triframe_inspect/triframe_agent
+    - ai_rd_fix_embedding/init_solver,use_tools,triframe_inspect/triframe_agent
+    - re_bench_common/init_solver,use_tools,triframe_inspect/triframe_agent
+    - metr_tasks_swaa/init_solver,generate
+    - triframe_inspect/triframe_agent
   gpt2:
     benchmark_name: METR-Horizon-v1.0
     metrics:
