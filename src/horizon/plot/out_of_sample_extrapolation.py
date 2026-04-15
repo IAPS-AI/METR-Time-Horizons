@@ -34,10 +34,16 @@ def _add_baseline_confidence_region(
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
     confidence_level: float,
+    success_percent: int,
 ) -> None:
-    """Shade CI for baseline trend by re-fitting OLS to each bootstrap sample."""
+    """Shade CI for baseline trend by re-fitting OLS to each bootstrap sample.
+
+    `bootstrap_results` columns must be named `{agent}_p{success_percent}` —
+    the suffix is stripped to recover agent names for the date lookup.
+    """
     dates = release_dates["date"]
-    focus_agents = [col.removesuffix("_p50") for col in bootstrap_results.columns]
+    suffix = f"_p{success_percent}"
+    focus_agents = [col.removesuffix(suffix) for col in bootstrap_results.columns]
     agent_dates = pd.Series([dates[a] for a in focus_agents])
 
     n_bootstraps = len(bootstrap_results)
@@ -262,11 +268,14 @@ def plot_time_horizon_with_extrapolation(
 
     _add_baseline_confidence_region(
         ax,
-        bootstrap_df[[f"{a}_p50" for a in agent_summaries["agent"]]],
+        bootstrap_df[
+            [f"{a}_p{success_percent}" for a in agent_summaries["agent"]]
+        ],
         release_dates,
         x_lim_start,
         baseline_date,
         confidence_level,
+        success_percent,
     )
     _plot_baseline_points(
         ax, agent_summaries, success_percent, confidence_level, lower_y_lim

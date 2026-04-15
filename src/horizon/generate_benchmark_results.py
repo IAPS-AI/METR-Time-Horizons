@@ -41,34 +41,13 @@ from horizon.plot.bootstrap_ci import (
     _compute_doubling_time_and_predictions_from_p50s,
     compute_bootstrap_confidence_region,
 )
+from horizon.sota import compute_sota_flags as _compute_sota_flags
 
 
 def defaultdict_to_dict(d: defaultdict | dict) -> dict:  # type: ignore
     if isinstance(d, defaultdict) or isinstance(d, dict):
         d = {k: defaultdict_to_dict(v) for k, v in d.items()}
     return d
-
-
-def _compute_sota_flags(
-    results: dict[str, Any], metric_key: str
-) -> dict[str, bool]:
-    """Mark a model SOTA if its <metric_key> estimate matches or beats the
-    running maximum across all earlier release dates. Models that share a
-    release date all see the same updated running max, so within a date only
-    the top-scoring model(s) are flagged SOTA."""
-    by_date: dict[str, list[tuple[str, float]]] = defaultdict(list)
-    for model, model_data in results.items():
-        horizon = model_data["metrics"][metric_key]["estimate"]
-        by_date[model_data["release_date"]].append((model, horizon))
-
-    flags: dict[str, bool] = {}
-    highest_so_far = float("-inf")
-    for release_date in sorted(by_date.keys()):
-        items = by_date[release_date]
-        highest_so_far = max(highest_so_far, max(h for _, h in items))
-        for model, horizon in items:
-            flags[model] = horizon >= highest_so_far
-    return flags
 
 
 def _get_trend_stats(

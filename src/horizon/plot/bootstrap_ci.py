@@ -452,15 +452,19 @@ def get_sota_agents(
     release_dates: dict[str, str],
     after_date: str | None = None,
     before_date: str | None = None,
+    success_percent: int = 50,
 ) -> list[str]:
-    """Determine which agents are SOTA based on p50 horizon at release time.
+    """Determine which agents are SOTA based on horizon at release time.
 
-    An agent is SOTA if its p50 horizon is >= the highest p50 seen among
-    all agents released on or before the same date.
+    An agent is SOTA if its p{success_percent} horizon is >= the highest
+    p{success_percent} seen among all agents released on or before the
+    same date. SOTA on p50 and SOTA on p80 are not the same set; pass the
+    threshold you intend to plot.
 
     If after_date is provided, only returns SOTA agents released on or after that date.
     If before_date is provided, only returns SOTA agents released before that date.
     """
+    p_col = f"p{success_percent}"
     agents_with_dates = []
     for _, row in agent_summaries.iterrows():
         agent = row["agent"]
@@ -468,20 +472,20 @@ def get_sota_agents(
             continue
 
         assert agent in release_dates, f"Agent {agent} not found in release dates"
-        p50 = row["p50"]
-        assert not pd.isna(p50) and not np.isinf(
-            p50
-        ), f"Agent {agent} has invalid p50: {p50}"
+        horizon = row[p_col]
+        assert not pd.isna(horizon) and not np.isinf(
+            horizon
+        ), f"Agent {agent} has invalid {p_col}: {horizon}"
         agents_with_dates.append(
             {
                 "agent": agent,
                 "release_date": pd.to_datetime(release_dates[agent]).date(),
-                "p50": p50,
+                "horizon": horizon,
             }
         )
 
     df = pd.DataFrame(agents_with_dates)
-    assert not df.empty, "No agents with valid p50s found"
+    assert not df.empty, f"No agents with valid {p_col}s found"
 
     df = df.sort_values("release_date")
 
@@ -496,11 +500,11 @@ def get_sota_agents(
 
     for release_date in df["release_date"].unique():
         agents_on_date = df[df["release_date"] == release_date]
-        max_horizon_on_date = agents_on_date["p50"].max()
+        max_horizon_on_date = agents_on_date["horizon"].max()
         highest_horizon_so_far = max(highest_horizon_so_far, max_horizon_on_date)
 
         for _, row in agents_on_date.iterrows():
-            if row["p50"] >= highest_horizon_so_far:
+            if row["horizon"] >= highest_horizon_so_far:
                 sota_agents.append(row["agent"])
 
     assert len(sota_agents) > 0, "No SOTA agents found after filtering"
@@ -516,12 +520,13 @@ def compute_bootstrap_confidence_region(
     trendline_end_date: str,
     confidence_level: float,
     filter_sota: bool = True,
+    success_percent: int = 50,
 ) -> tuple[DoublingTimeStats, pd.DatetimeIndex, NDArray[Any], NDArray[Any]]:
     """Compute bootstrap confidence intervals from bootstrap samples.
 
     Args:
-        agent_summaries: DataFrame with agent summary data including p50 values.
-        bootstrap_results: DataFrame with columns for each agent containing p50s.
+        agent_summaries: DataFrame with agent summary data including p{success_percent} values.
+        bootstrap_results: DataFrame with `{agent}_p{success_percent}` columns.
         release_dates: Dictionary mapping agent names to release dates
         after_date: Start date for trendline
         sota_before_date: Only consider agents released before this date when determining SOTA agents for the trendline fit
@@ -529,21 +534,29 @@ def compute_bootstrap_confidence_region(
         confidence_level: Confidence level for the interval (e.g. 0.95)
         filter_sota: If True, filter to SOTA agents before computing. If False,
             use all provided agents.
+        success_percent: Which horizon threshold to fit the trendline to (50 or 80).
+            SOTA filtering and the bootstrap column selection both honor this.
 
     Returns:
         Tuple of (doubling_time_stats, time_points, lower_bound, upper_bound)
     """
     dates = release_dates["date"]
+    suffix = f"_p{success_percent}"
+    p_col = f"p{success_percent}"
 
-    # Filter to _p50 columns, rename to agent names
-    bootstrap_results = bootstrap_results.filter(like="_p50")
+    # Filter to the requested-percentile columns, rename to agent names
+    bootstrap_results = bootstrap_results.filter(like=suffix)
     bootstrap_results.columns = pd.Index(
-        [col.removesuffix("_p50") for col in bootstrap_results.columns]
+        [col.removesuffix(suffix) for col in bootstrap_results.columns]
     )
 
     if filter_sota:
         sota_agents = get_sota_agents(
-            agent_summaries, dates, after_date, sota_before_date
+            agent_summaries,
+            dates,
+            after_date,
+            sota_before_date,
+            success_percent=success_percent,
         )
         bootstrap_results = bootstrap_results[sota_agents]
         agent_summaries = agent_summaries[agent_summaries["agent"].isin(sota_agents)]
@@ -561,20 +574,20 @@ def compute_bootstrap_confidence_region(
     predictions = np.zeros((n_bootstraps, len(time_points)))
     assert n_bootstraps > 0
     for sample_idx in range(n_bootstraps):
-        p50s = pd.to_numeric(bootstrap_results.iloc[sample_idx], errors="raise")
-        valid_p50s_dates = []
+        horizons = pd.to_numeric(bootstrap_results.iloc[sample_idx], errors="raise")
+        valid_horizons_dates = []
         for agent in bootstrap_results.columns:
-            p50 = p50s[agent]
-            if pd.isna(p50) or np.isinf(p50) or p50 < 1e-3:
+            horizon = horizons[agent]
+            if pd.isna(horizon) or np.isinf(horizon) or horizon < 1e-3:
                 continue
-            valid_p50s_dates.append((p50, dates[agent]))
+            valid_horizons_dates.append((horizon, dates[agent]))
 
-        if len(valid_p50s_dates) < 2:
+        if len(valid_horizons_dates) < 2:
             continue
 
         doubling_time, predictions_for_sample = (
             _compute_doubling_time_and_predictions_from_p50s(
-                valid_p50s_dates, time_points
+                valid_horizons_dates, time_points
             )
         )
         if doubling_time > 0:
@@ -585,7 +598,7 @@ def compute_bootstrap_confidence_region(
     point_estimate_doubling_time, _ = _compute_doubling_time_and_predictions_from_p50s(
         list(
             zip(
-                agent_summaries["p50"].tolist(),
+                agent_summaries[p_col].tolist(),
                 agent_summaries["release_date"].tolist(),
             )
         ),
@@ -626,18 +639,20 @@ def add_bootstrap_confidence_region(
     confidence_level: float,
     color: str = "#d2dfd7",
     filter_sota: bool = True,
+    success_percent: int = 50,
 ) -> DoublingTimeStats:
     """Add bootstrap confidence intervals and region to an existing plot.
 
     Args:
         ax: matplotlib axes
-        bootstrap_results: DataFrame with columns for each agent containing p50s.
+        bootstrap_results: DataFrame with `{agent}_p{success_percent}` columns.
         release_dates: Dictionary mapping agent names to release dates
         after_date: Start date for trendline
         max_date: End date for trendline
         confidence_level: Confidence level for the interval (e.g. 0.95)
         filter_sota: If True, filter to SOTA agents before computing. If False,
             use all provided agents.
+        success_percent: Threshold (50 or 80) for which the CI region is computed.
 
     Returns:
         DoublingTimeStats with median and confidence interval
@@ -651,6 +666,7 @@ def add_bootstrap_confidence_region(
         max_date,  # trendline_end_date and sota_before_date are the same
         confidence_level,
         filter_sota=filter_sota,
+        success_percent=success_percent,
     )
 
     ax.fill_between(
@@ -807,12 +823,13 @@ def main() -> None:
         )
 
     stats = None
+    success_percent = script_params.get("success_percent", 50)
     if not script_params.get("hide_trendline", False):
         logger.info(
             f"Agents to be used for trendline central estimate:  {agent_summaries_for_fitting.sort_values('release_date')['agent'].values.tolist()}"
         )
         reg, score = fit_trendline(
-            agent_summaries_for_fitting[f"p{script_params.get('success_percent', 50)}"],
+            agent_summaries_for_fitting[f"p{success_percent}"],
             pd.to_datetime(agent_summaries_for_fitting["release_date"]),
             log_scale=True,
         )
@@ -874,7 +891,10 @@ def main() -> None:
             ax=axs[0],
             agent_summaries=agent_summaries_for_fitting,
             bootstrap_results=bootstrap_results[
-                [f"{agent}_p50" for agent in agent_summaries_for_fitting["agent"]]
+                [
+                    f"{agent}_p{success_percent}"
+                    for agent in agent_summaries_for_fitting["agent"]
+                ]
             ],
             release_dates=release_dates,
             after_date=script_params["trendlines"][0]["line_start_date"],
@@ -882,6 +902,7 @@ def main() -> None:
             confidence_level=confidence_level,
             color=confidence_region_color,
             filter_sota=False,
+            success_percent=success_percent,
         )
         logger.info(
             f"95% CI for doubling times: [{stats.ci_lower:.0f}, {stats.ci_upper:.0f}] days "
