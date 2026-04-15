@@ -16,6 +16,8 @@ results:
       average_score:
         estimate: 0.481203
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 35.808873
         ci_low: 10.531997
@@ -34,6 +36,8 @@ results:
       average_score:
         estimate: 0.530535
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 60.891717
         ci_low: 14.72191
@@ -52,6 +56,8 @@ results:
       average_score:
         estimate: 0.605035
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 89.187313
         ci_low: 28.87097
@@ -70,6 +76,8 @@ results:
       average_score:
         estimate: 0.377459
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 14.764711
         ci_low: 3.217769
@@ -88,6 +96,8 @@ results:
       average_score:
         estimate: 0.677469
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 200.80836
         ci_low: 55.954932
@@ -106,6 +116,8 @@ results:
       average_score:
         estimate: 0.648693
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 140.617499
         ci_low: 44.934856
@@ -124,6 +136,8 @@ results:
       average_score:
         estimate: 0.632651
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 127.091712
         ci_low: 38.322944
@@ -142,6 +156,8 @@ results:
       average_score:
         estimate: 0.753054
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 821.560215
         ci_low: 104.265659
@@ -160,6 +176,8 @@ results:
       average_score:
         estimate: 0.683012
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 225.752849
         ci_low: 58.936193
@@ -178,6 +196,8 @@ results:
       average_score:
         estimate: 0.161869
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 0.221209
         ci_low: 0.093319
@@ -196,6 +216,8 @@ results:
       average_score:
         estimate: 0.520133
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 52.750504
         ci_low: 14.422102
@@ -214,6 +236,8 @@ results:
       average_score:
         estimate: 0.542232
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 64.081849
         ci_low: 13.756178
@@ -232,6 +256,8 @@ results:
       average_score:
         estimate: 0.474508
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 35.001162
         ci_low: 10.37305
@@ -250,6 +276,8 @@ results:
       average_score:
         estimate: 0.497576
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 43.32637
         ci_low: 12.569662
@@ -268,6 +296,8 @@ results:
       average_score:
         estimate: 0.557925
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 69.856777
         ci_low: 20.357511
@@ -286,6 +316,8 @@ results:
       average_score:
         estimate: 0.574566
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 85.537034
         ci_low: 19.901035
@@ -304,6 +336,8 @@ results:
       average_score:
         estimate: 0.101046
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 0.141825
         ci_low: 0.009994
@@ -321,6 +355,8 @@ results:
       average_score:
         estimate: 0.214611
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 1.115905
         ci_low: 0.255148
@@ -339,6 +375,8 @@ results:
       average_score:
         estimate: 0.361067
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 11.721889
         ci_low: 2.768122
@@ -357,6 +395,8 @@ results:
       average_score:
         estimate: 0.351726
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 11.553041
         ci_low: 3.267886
@@ -375,6 +415,8 @@ results:
       average_score:
         estimate: 0.404329
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 18.162454
         ci_low: 4.468489
@@ -393,6 +435,8 @@ results:
       average_score:
         estimate: 0.367357
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 14.21142
         ci_low: 4.050277
@@ -411,6 +455,8 @@ results:
       average_score:
         estimate: 0.408517
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 19.508766
         ci_low: 5.000948
@@ -429,6 +475,8 @@ results:
       average_score:
         estimate: 0.698403
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 247.820152
         ci_low: 67.703931
@@ -447,6 +495,8 @@ results:
       average_score:
         estimate: 0.721134
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 336.504695
         ci_low: 80.193214
@@ -465,6 +515,8 @@ results:
       average_score:
         estimate: 0.667187
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 208.297605
         ci_low: 47.555449
@@ -483,6 +535,8 @@ results:
       average_score:
         estimate: 0.60027
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 100.591631
         ci_low: 27.423314
@@ -501,6 +555,8 @@ results:
       average_score:
         estimate: 0.56549
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 85.806317
         ci_low: 19.822684
@@ -519,6 +575,8 @@ results:
       average_score:
         estimate: 0.492955
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 39.370195
         ci_low: 12.640748
@@ -537,6 +595,8 @@ results:
       average_score:
         estimate: 0.658782
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 158.036682
         ci_low: 46.571206
@@ -555,6 +615,8 @@ results:
       average_score:
         estimate: 0.642837
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 142.123876
         ci_low: 37.053517
@@ -573,6 +635,8 @@ results:
       average_score:
         estimate: 0.357771
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 12.146289
         ci_low: 2.563669
@@ -591,6 +655,8 @@ results:
       average_score:
         estimate: 0.298999
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 5.937061
         ci_low: 0.945777

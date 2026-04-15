@@ -14,6 +14,8 @@ results:
       average_score:
         estimate: 0.401502
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 22.384214
         ci_low: 5.489734
@@ -35,6 +37,8 @@ results:
       average_score:
         estimate: 0.452356
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 40.82028
         ci_low: 10.144026
@@ -56,6 +60,8 @@ results:
       average_score:
         estimate: 0.558217
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 104.226017
         ci_low: 33.006168
@@ -77,6 +83,8 @@ results:
       average_score:
         estimate: 0.294753
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 8.76484
         ci_low: 1.706313
@@ -98,6 +106,8 @@ results:
       average_score:
         estimate: 0.615713
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 159.451918
         ci_low: 59.272391
@@ -119,6 +129,8 @@ results:
       average_score:
         estimate: 0.615452
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 163.454074
         ci_low: 59.994073
@@ -140,6 +152,8 @@ results:
       average_score:
         estimate: 0.73007
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 623.704698
         ci_low: 161.717714
@@ -161,6 +175,8 @@ results:
       average_score:
         estimate: 0.788644
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 3633.786163
         ci_low: 316.685725
@@ -182,6 +198,8 @@ results:
       average_score:
         estimate: 0.161869
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 0.221209
         ci_low: 0.093319
@@ -194,54 +212,14 @@ results:
     scaffolds:
     - modular-public
     - null
-  gpt_5_3_codex:
-    benchmark_name: METR-Horizon-v1.1
-    metrics:
-      average_score:
-        estimate: 0.745439
-      is_sota: false
-      p50_horizon_length:
-        ci_high: 816.351994
-        ci_low: 194.913134
-        estimate: 349.530732
-      p80_horizon_length:
-        ci_high: 122.058963
-        ci_low: 22.361504
-        estimate: 54.739407
-    release_date: 2026-02-05
-    scaffolds:
-    - mtb/start_metr_task,triframe_inspect/triframe_agent
-    - ai_rd_fix_embedding/init_solver,use_tools,triframe_inspect/triframe_agent
-    - re_bench_common/init_solver,use_tools,triframe_inspect/triframe_agent
-    - metr_tasks_swaa/init_solver,generate
-    - triframe_inspect/triframe_agent
-  gemini_3_pro:
-    benchmark_name: METR-Horizon-v1.1
-    metrics:
-      average_score:
-        estimate: 0.709822
-      is_sota: true
-      p50_horizon_length:
-        ci_high: 379.235434
-        ci_low: 139.565157
-        estimate: 224.325884
-      p80_horizon_length:
-        ci_high: 103.295501
-        ci_low: 25.650451
-        estimate: 54.142849
-    release_date: 2025-11-18
-    scaffolds:
-    - mtb/start_metr_task,metr_agents/react
-    - ai_rd_fix_embedding/init_solver,use_tools,metr_agents/react
-    - re_bench_common/init_solver,use_tools,metr_agents/react
-    - metr_tasks_swaa/init_solver,generate
-    - metr_agents/react
   gemini_3_1_pro:
     benchmark_name: METR-Horizon-v1.1
     metrics:
       average_score:
         estimate: 0.77035
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 694.750898
         ci_low: 233.50073
@@ -257,12 +235,37 @@ results:
     - re_bench_common/init_solver,use_tools,triframe_inspect/triframe_agent
     - metr_tasks_swaa/init_solver,generate
     - triframe_inspect/triframe_agent
+  gemini_3_pro:
+    benchmark_name: METR-Horizon-v1.1
+    metrics:
+      average_score:
+        estimate: 0.709822
+      is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
+      p50_horizon_length:
+        ci_high: 379.235434
+        ci_low: 139.565157
+        estimate: 224.325884
+      p80_horizon_length:
+        ci_high: 103.295501
+        ci_low: 25.650451
+        estimate: 54.142849
+    release_date: 2025-11-18
+    scaffolds:
+    - mtb/start_metr_task,metr_agents/react
+    - ai_rd_fix_embedding/init_solver,use_tools,metr_agents/react
+    - re_bench_common/init_solver,use_tools,metr_agents/react
+    - metr_tasks_swaa/init_solver,generate
+    - metr_agents/react
   gpt2:
     benchmark_name: METR-Horizon-v1.0
     metrics:
       average_score:
         estimate: 0.101046
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 0.141825
         ci_low: 0.009994
@@ -280,6 +283,8 @@ results:
       average_score:
         estimate: 0.214611
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 1.115905
         ci_low: 0.255148
@@ -298,6 +303,8 @@ results:
       average_score:
         estimate: 0.293044
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 7.995283
         ci_low: 1.93292
@@ -316,6 +323,8 @@ results:
       average_score:
         estimate: 0.28905
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 8.443226
         ci_low: 1.866859
@@ -337,6 +346,8 @@ results:
       average_score:
         estimate: 0.271786
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 6.736613
         ci_low: 1.980046
@@ -358,6 +369,8 @@ results:
       average_score:
         estimate: 0.338424
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 12.905741
         ci_low: 4.001482
@@ -379,6 +392,8 @@ results:
       average_score:
         estimate: 0.708301
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 396.206723
         ci_low: 134.31077
@@ -400,6 +415,8 @@ results:
       average_score:
         estimate: 0.752875
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 815.177445
         ci_low: 198.067494
@@ -421,6 +438,8 @@ results:
       average_score:
         estimate: 0.693697
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 405.551565
         ci_low: 112.641357
@@ -436,12 +455,37 @@ results:
     - re_bench_common/init_solver,use_tools,triframe_inspect/triframe_agent
     - metr_tasks_swaa/init_solver,generate
     - triframe_inspect/triframe_agent
+  gpt_5_3_codex:
+    benchmark_name: METR-Horizon-v1.1
+    metrics:
+      average_score:
+        estimate: 0.745439
+      is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
+      p50_horizon_length:
+        ci_high: 816.351994
+        ci_low: 194.913134
+        estimate: 349.530732
+      p80_horizon_length:
+        ci_high: 122.058963
+        ci_low: 22.361504
+        estimate: 54.739407
+    release_date: 2026-02-05
+    scaffolds:
+    - mtb/start_metr_task,triframe_inspect/triframe_agent
+    - ai_rd_fix_embedding/init_solver,use_tools,triframe_inspect/triframe_agent
+    - re_bench_common/init_solver,use_tools,triframe_inspect/triframe_agent
+    - metr_tasks_swaa/init_solver,generate
+    - triframe_inspect/triframe_agent
   gpt_5_4:
     benchmark_name: METR-Horizon-v1.1
     metrics:
       average_score:
         estimate: 0.743443
       is_sota: false
+      is_sota_p50: false
+      is_sota_p80: false
       p50_horizon_length:
         ci_high: 768.779526
         ci_low: 186.581591
@@ -463,6 +507,8 @@ results:
       average_score:
         estimate: 0.510512
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 64.95249
         ci_low: 21.164512
@@ -484,6 +530,8 @@ results:
       average_score:
         estimate: 0.451441
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 33.379877
         ci_low: 11.716193
@@ -502,6 +550,8 @@ results:
       average_score:
         estimate: 0.636235
       is_sota: true
+      is_sota_p50: true
+      is_sota_p80: true
       p50_horizon_length:
         ci_high: 190.943818
         ci_low: 74.615398

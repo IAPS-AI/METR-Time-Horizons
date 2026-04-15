@@ -1022,7 +1022,10 @@
                 ciHigh,
                 weight,
                 avgScore: metrics.average_score?.estimate,
-                isSota: metrics.is_sota,
+                // SOTA is threshold-specific: a model can lead the p50 frontier
+                // without leading the p80 frontier (or vice versa). Fall back to
+                // the legacy single `is_sota` field for older YAMLs.
+                isSota: metrics[`is_sota_${horizonType}`] ?? metrics.is_sota,
                 isOpen,
                 country,
                 isChina: country === "China",

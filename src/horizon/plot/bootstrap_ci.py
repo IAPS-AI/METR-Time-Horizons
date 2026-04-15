@@ -53,8 +53,10 @@ def _load_overlay_results(
 
         metrics = agent_data["metrics"]
 
-        # Only include SOTA agents
-        if not metrics.get("is_sota", False):
+        # Only include SOTA agents at the requested success threshold.
+        # Falls back to the legacy single `is_sota` field for old YAMLs.
+        sota_key = f"is_sota_p{success_percent}"
+        if not metrics.get(sota_key, metrics.get("is_sota", False)):
             continue
 
         p_key = f"p{success_percent}_horizon_length"

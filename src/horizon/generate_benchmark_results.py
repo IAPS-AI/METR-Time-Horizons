@@ -49,6 +49,28 @@ def defaultdict_to_dict(d: defaultdict | dict) -> dict:  # type: ignore
     return d
 
 
+def _compute_sota_flags(
+    results: dict[str, Any], metric_key: str
+) -> dict[str, bool]:
+    """Mark a model SOTA if its <metric_key> estimate matches or beats the
+    running maximum across all earlier release dates. Models that share a
+    release date all see the same updated running max, so within a date only
+    the top-scoring model(s) are flagged SOTA."""
+    by_date: dict[str, list[tuple[str, float]]] = defaultdict(list)
+    for model, model_data in results.items():
+        horizon = model_data["metrics"][metric_key]["estimate"]
+        by_date[model_data["release_date"]].append((model, horizon))
+
+    flags: dict[str, bool] = {}
+    highest_so_far = float("-inf")
+    for release_date in sorted(by_date.keys()):
+        items = by_date[release_date]
+        highest_so_far = max(highest_so_far, max(h for _, h in items))
+        for model, horizon in items:
+            flags[model] = horizon >= highest_so_far
+    return flags
+
+
 def _get_trend_stats(
     agent_summaries: pd.DataFrame,
     bootstrap_results: pd.DataFrame,
@@ -160,7 +182,6 @@ def generate_benchmark_metrics(
     model_names_to_stitch: list[str] | None = None,
 ) -> dict[str, Any]:
     results = dict()
-    dated_results = defaultdict(set)
 
     df_runs["duration_minutes"] = (df_runs["completed_at"] - df_runs["started_at"]) / (
         60 * 1000
@@ -217,12 +238,6 @@ def generate_benchmark_metrics(
         results[model]["release_date"] = release_dates[agent]
         results[model]["scaffolds"] = list(agent_df["scaffold"].unique())
         results[model]["benchmark_name"] = benchmark_name
-        dated_results[release_dates[agent]].add(
-            (
-                model,
-                agent_result["p50_horizon_length"]["estimate"],
-            )
-        )
 
     if benchmark_results_to_stitch:
         assert (
@@ -237,29 +252,29 @@ def generate_benchmark_metrics(
                 model_name not in results
             ), f"Model {model_name} already exists in current results"
             results[model_name] = old_results[model_name].copy()
-            dated_results[results[model_name]["release_date"]].add(
-                (
-                    model_name,
-                    results[model_name]["metrics"]["p50_horizon_length"]["estimate"],
-                )
-            )
 
-    highest_horizon_so_far = float("-inf")
-    stitched_p50s = []
-    stitched_dates = []
-    for release_date, results_on_date in sorted(dated_results.items()):
-        highest_horizon_so_far = max(
-            highest_horizon_so_far, max(horizon for model, horizon in results_on_date)
+    sota_p50_flags = _compute_sota_flags(results, "p50_horizon_length")
+    sota_p80_flags = _compute_sota_flags(results, "p80_horizon_length")
+    for model in results:
+        results[model]["metrics"]["is_sota_p50"] = sota_p50_flags[model]
+        results[model]["metrics"]["is_sota_p80"] = sota_p80_flags[model]
+        # Kept for back-compat with downstream consumers (e.g. the Epoch dashboard)
+        # that read the legacy single `is_sota` field; mirrors the p50 frontier.
+        results[model]["metrics"]["is_sota"] = sota_p50_flags[model]
+
+    # Stitched (p50, date) pairs feed the trendline below; only p50-SOTA models
+    # contribute, matching the original behavior.
+    stitched_p50s: List[float] = []
+    stitched_dates: List[str] = []
+    for release_date, model in sorted(
+        (model_data["release_date"], model)
+        for model, model_data in results.items()
+        if sota_p50_flags[model]
+    ):
+        stitched_p50s.append(
+            results[model]["metrics"]["p50_horizon_length"]["estimate"]
         )
-        for model, horizon in results_on_date:
-            if horizon < highest_horizon_so_far:
-                results[model]["metrics"]["is_sota"] = False
-            else:
-                results[model]["metrics"]["is_sota"] = True
-                stitched_p50s.append(
-                    results[model]["metrics"]["p50_horizon_length"]["estimate"]
-                )
-                stitched_dates.append(release_date)
+        stitched_dates.append(release_date)
 
     results = defaultdict_to_dict(results)
 
