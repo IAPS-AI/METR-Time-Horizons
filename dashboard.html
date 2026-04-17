@@ -743,10 +743,10 @@
                 <fieldset class="gap-toggle-field">
                     <legend>Success rate</legend>
                     <div class="gap-toggle-group">
-                        <input type="radio" name="gap-success" id="gap-success-p80" value="p80" checked>
-                        <label for="gap-success-p80">80%</label>
-                        <input type="radio" name="gap-success" id="gap-success-p50" value="p50">
+                        <input type="radio" name="gap-success" id="gap-success-p50" value="p50" checked>
                         <label for="gap-success-p50">50%</label>
+                        <input type="radio" name="gap-success" id="gap-success-p80" value="p80">
+                        <label for="gap-success-p80">80%</label>
                     </div>
                 </fieldset>
 
@@ -2186,7 +2186,7 @@
 
     let currentGapFraming = 'open_closed';
     let currentGapMetric = 'average'; // 'average' or 'current'
-    let currentGapSuccess = 'p80';   // overrides global horizonType for the gap chart only
+    let currentGapSuccess = 'p50';   // overrides global horizonType for the gap chart only
     let currentGapScale = 'log';     // 'linear' | 'log'
 
     function getGapData() {
