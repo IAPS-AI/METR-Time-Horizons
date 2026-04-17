@@ -728,7 +728,9 @@
                 </div>
             </details>
 
-            <div id="gapPlot" style="margin-top: 1rem; min-height: 400px;"></div>
+            <div class="gap-legend" id="gapLegend"></div>
+            <div class="gap-chart-container" id="gapChart"></div>
+            <div class="gap-tooltip" id="gapTooltip" role="status" aria-live="polite"></div>
 
             <details style="margin-top: 1rem;">
                 <summary style="cursor: pointer; font-weight: 600; color: #0f172a;">Gap Details</summary>
@@ -2110,15 +2112,13 @@
         return parseYAMLData(rawData, currentGapSuccess);
     }
 
-    function createGapPlot(data, framing) {
+    function renderGapChart(data, framing, scaleMode) {
         const isOpenClosed = framing === 'open_closed';
         const groupKey = isOpenClosed ? 'isOpen' : 'isChina';
-        const leadingValue = false; // Closed or US models lead
+        const leadingValue = false; // Closed or US lead
 
         const leadingLabel = isOpenClosed ? 'Closed' : 'US';
         const laggingLabel = isOpenClosed ? 'Open' : 'China';
-        const leadingColor = isOpenClosed ? '#e11d48' : '#2563eb';
-        const laggingColor = isOpenClosed ? '#2563eb' : '#e11d48';
 
         const leadingData = data.filter(d => d[groupKey] === leadingValue);
         const laggingData = data.filter(d => d[groupKey] !== leadingValue);
@@ -2126,105 +2126,183 @@
         const leadingFrontier = frontierFor(leadingData);
         const laggingFrontier = frontierFor(laggingData);
 
-        const traces = [];
+        const container = document.getElementById('gapChart');
+        container.innerHTML = '';
 
-        // Leading models
-        if (leadingFrontier.length > 0) {
-            traces.push({
-                x: leadingFrontier.map(d => d.date),
-                y: leadingFrontier.map(d => d.horizon),
-                mode: 'markers+lines',
-                type: 'scatter',
-                name: `${leadingLabel} frontier`,
-                marker: { color: leadingColor, size: 10, symbol: 'circle' },
-                line: { color: leadingColor, width: 2 },
-                hovertemplate: leadingFrontier.map(d =>
-                    `<b>${d.name}</b> <i>(${d.benchmarkVersion})</i><br>Date: ${formatDate(d.date)}<br>Horizon: ${formatHours(d.horizon)}<extra></extra>`
-                )
-            });
+        const legend = document.getElementById('gapLegend');
+        legend.innerHTML = `
+            <span class="gap-legend-item">
+                <span class="gap-legend-line" style="border-color: var(--gap-leading);"></span>
+                ${leadingLabel} frontier
+            </span>
+            <span class="gap-legend-item">
+                <span class="gap-legend-line lagging" style="border-color: var(--gap-lagging);"></span>
+                ${laggingLabel} frontier
+            </span>
+            <span class="gap-legend-item">
+                <span class="gap-legend-swatch"></span>
+                Capability gap
+            </span>
+        `;
+
+        if (leadingFrontier.length < 2 || laggingFrontier.length < 1) {
+            container.innerHTML = '<div class="gap-chart-empty">Not enough frontier data for this comparison.</div>';
+            return;
         }
 
-        // Lagging models
-        if (laggingFrontier.length > 0) {
-            traces.push({
-                x: laggingFrontier.map(d => d.date),
-                y: laggingFrontier.map(d => d.horizon),
-                mode: 'markers+lines',
-                type: 'scatter',
-                name: `${laggingLabel} frontier`,
-                marker: { color: laggingColor, size: 10, symbol: 'square' },
-                line: { color: laggingColor, width: 2 },
-                hovertemplate: laggingFrontier.map(d =>
-                    `<b>${d.name}</b> <i>(${d.benchmarkVersion})</i><br>Date: ${formatDate(d.date)}<br>Horizon: ${formatHours(d.horizon)}<extra></extra>`
-                )
-            });
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 420;
+        const margin = { top: 16, right: 24, bottom: 36, left: 60 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const svg = d3.select(container)
+            .append('svg')
+            .attr('viewBox', `0 0 ${width} ${height}`)
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+
+        const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // X scale (time)
+        const allDates = [...leadingFrontier, ...laggingFrontier].map(d => d.date);
+        const today = new Date();
+        const xMin = d3.min(allDates);
+        const xMax = today;
+        const x = d3.scaleTime().domain([xMin, xMax]).range([0, innerW]).nice();
+
+        // Y scale (horizon hours)
+        const allHorizons = [...leadingFrontier, ...laggingFrontier].map(d => d.horizon);
+        const yMaxData = d3.max(allHorizons);
+        const yMinData = d3.min(allHorizons);
+        let y;
+        if (scaleMode === 'log') {
+            y = d3.scaleLog()
+                .domain([Math.max(yMinData * 0.5, 1e-3), yMaxData * 1.2])
+                .range([innerH, 0])
+                .clamp(true);
+        } else {
+            y = d3.scaleLinear()
+                .domain([0, yMaxData * 1.1])
+                .range([innerH, 0])
+                .nice();
         }
 
-        // Add trend lines
-        const leadingTrend = calculateGroupTrend(leadingData);
-        const laggingTrend = calculateGroupTrend(laggingData);
+        // Grid
+        g.append('g')
+            .attr('class', 'grid')
+            .attr('transform', `translate(0,${innerH})`)
+            .call(d3.axisBottom(x).ticks(6).tickSize(-innerH).tickFormat(''));
+        g.append('g')
+            .attr('class', 'grid')
+            .call(d3.axisLeft(y).ticks(6).tickSize(-innerW).tickFormat(''));
 
-        if (leadingTrend && leadingTrend.doublingTimeDays > 0) {
-            const trendX = [];
-            const trendY = [];
-            const startNum = leadingTrend.startDate.getTime() / (1000 * 60 * 60 * 24);
-            const endNum = leadingTrend.endDate.getTime() / (1000 * 60 * 60 * 24);
-            for (let d = startNum; d <= endNum; d += 7) {
-                trendX.push(new Date(d * 24 * 60 * 60 * 1000));
-                trendY.push(Math.exp(leadingTrend.slope * d + leadingTrend.intercept));
+        // Axes
+        g.append('g')
+            .attr('transform', `translate(0,${innerH})`)
+            .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat('%b %Y')));
+
+        const yTickFormat = (v) => formatHours(v);
+        g.append('g').call(d3.axisLeft(y).ticks(6).tickFormat(yTickFormat));
+
+        // Step series extended to today at last horizon
+        function extendToToday(frontier) {
+            if (frontier.length === 0) return [];
+            const last = frontier[frontier.length - 1];
+            return [...frontier, { ...last, date: today, _isExtension: true }];
+        }
+        const leadingSeries = extendToToday(leadingFrontier);
+        const laggingSeries = extendToToday(laggingFrontier);
+
+        const line = d3.line()
+            .x(d => x(d.date))
+            .y(d => y(d.horizon))
+            .curve(d3.curveStepAfter);
+
+        // Shaded gap area (step-after semantics)
+        function horizonAt(series, t) {
+            let h = 0;
+            for (const p of series) {
+                if (p.date <= t) h = p.horizon; else break;
             }
-            traces.push({
-                x: trendX, y: trendY,
-                mode: 'lines', type: 'scatter',
-                name: `${leadingLabel} trend`,
-                line: { color: leadingColor, width: 2, dash: 'dash' },
-                opacity: 0.6,
-                showlegend: false
-            });
+            return h;
         }
 
-        if (laggingTrend && laggingTrend.doublingTimeDays > 0) {
-            const trendX = [];
-            const trendY = [];
-            const startNum = laggingTrend.startDate.getTime() / (1000 * 60 * 60 * 24);
-            const endNum = laggingTrend.endDate.getTime() / (1000 * 60 * 60 * 24);
-            for (let d = startNum; d <= endNum; d += 7) {
-                trendX.push(new Date(d * 24 * 60 * 60 * 1000));
-                trendY.push(Math.exp(laggingTrend.slope * d + laggingTrend.intercept));
-            }
-            traces.push({
-                x: trendX, y: trendY,
-                mode: 'lines', type: 'scatter',
-                name: `${laggingLabel} trend`,
-                line: { color: laggingColor, width: 2, dash: 'dash' },
-                opacity: 0.6,
-                showlegend: false
-            });
+        const eventDates = Array.from(new Set([
+            ...leadingSeries.map(p => p.date.getTime()),
+            ...laggingSeries.map(p => p.date.getTime()),
+        ])).sort((a, b) => a - b).map(t => new Date(t));
+
+        const gapPoints = eventDates.map(t => {
+            const lead = horizonAt(leadingSeries, t);
+            const lag = horizonAt(laggingSeries, t);
+            return { date: t, lead, lag };
+        }).filter(p => p.lead > 0 && p.lag > 0);
+
+        if (gapPoints.length >= 2) {
+            const area = d3.area()
+                .x(p => x(p.date))
+                .y0(p => y(p.lag))
+                .y1(p => y(p.lead))
+                .curve(d3.curveStepAfter);
+
+            g.append('path')
+                .attr('d', area(gapPoints))
+                .attr('fill', 'var(--gap-fill)')
+                .attr('stroke', 'var(--gap-stroke)')
+                .attr('stroke-width', 0.5);
         }
 
-        const title = isOpenClosed ? 'Open vs Closed Model Performance' : 'US vs China Model Performance';
+        // Lines
+        g.append('path')
+            .attr('d', line(leadingSeries))
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--gap-leading)')
+            .attr('stroke-width', 2.5);
 
-        const layout = {
-            title: { text: title, font: { size: 16 } },
-            xaxis: {
-                title: 'Release Date',
-                gridcolor: 'rgba(128,128,128,0.2)'
-            },
-            yaxis: {
-                title: 'Time Horizon (hours)',
-                type: 'log',
-                gridcolor: 'rgba(128,128,128,0.2)',
-                tickvals: [0.01, 0.1, 0.5, 1, 2, 4, 8, 24, 48, 168],
-                ticktext: ['36s', '6m', '30m', '1h', '2h', '4h', '8h', '1d', '2d', '1w']
-            },
-            legend: { orientation: 'h', y: 1.1 },
-            hovermode: 'closest',
-            plot_bgcolor: 'white',
-            paper_bgcolor: 'white',
-            height: 400
-        };
+        g.append('path')
+            .attr('d', line(laggingSeries))
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--gap-lagging)')
+            .attr('stroke-width', 2.5)
+            .attr('stroke-dasharray', '6 4');
 
-        Plotly.newPlot('gapPlot', traces, layout, { responsive: true });
+        // Dots (frontier-advancing models only)
+        function drawDots(frontier, color, hollow) {
+            g.selectAll(null)
+                .data(frontier)
+                .enter()
+                .append('circle')
+                .attr('cx', d => x(d.date))
+                .attr('cy', d => y(d.horizon))
+                .attr('r', 5)
+                .attr('fill', hollow ? '#ffffff' : color)
+                .attr('stroke', color)
+                .attr('stroke-width', 2)
+                .attr('class', 'dot')
+                .style('cursor', 'pointer')
+                .on('mouseenter', function (event, d) {
+                    showGapTooltip(event, d, hollow ? laggingLabel : leadingLabel);
+                })
+                .on('mouseleave', hideGapTooltip);
+        }
+        drawDots(leadingFrontier, '#457b9d', false);
+        drawDots(laggingFrontier, '#e63946', true);
+    }
+
+    function showGapTooltip(event, d, groupLabel) {
+        const tt = document.getElementById('gapTooltip');
+        tt.innerHTML = `
+            <div class="tt-title">${d.name}</div>
+            <div>${groupLabel} · ${formatDate(d.date)}</div>
+            <div>Horizon: ${formatHours(d.horizon)}</div>
+        `;
+        tt.style.opacity = 1;
+        tt.style.left = (event.clientX + 12) + 'px';
+        tt.style.top = (event.clientY + 12) + 'px';
+    }
+
+    function hideGapTooltip() {
+        document.getElementById('gapTooltip').style.opacity = 0;
     }
 
     function updateGapStats(data, framing, metric) {
@@ -2357,7 +2435,7 @@
     }
 
     function updateGapAnalysis(data) {
-        createGapPlot(data, currentGapFraming);
+        renderGapChart(data, currentGapFraming, currentGapScale);
         updateGapStats(data, currentGapFraming, currentGapMetric);
     }
 
@@ -2633,6 +2711,14 @@
             });
         });
 
+        // Re-render gap chart on resize (debounced)
+        let _gapResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(_gapResizeTimer);
+            _gapResizeTimer = setTimeout(() => {
+                if (rawData) renderGapChart(getGapData(), currentGapFraming, currentGapScale);
+            }, 100);
+        });
     });
     </script>
 </body>
