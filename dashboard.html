@@ -115,6 +115,7 @@
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
+            padding: 12px 8px 4px;
         }
 
         .stats-grid {
@@ -1688,7 +1689,7 @@
                     marker: {
                         color: color,
                         size: 10,
-                        line: { color: 'white', width: 1 }
+                        line: { color: color, width: 2 }
                     },
                     hovertemplate: familyData.map(d =>
                         `<b>${d.name}</b> <i>(${d.benchmarkVersion})</i><br>` +
@@ -1708,7 +1709,7 @@
                     marker: {
                         color: color,
                         size: 10,
-                        line: { color: 'white', width: 1 }
+                        line: { color: color, width: 2 }
                     },
                     hovertemplate: familyData.map(d =>
                         `<b>${d.name}</b> <i>(${d.benchmarkVersion})</i><br>` +
@@ -1741,7 +1742,7 @@
             mode: 'lines',
             type: 'scatter',
             name: `Fitted Trend (${dt.toFixed(0)}d doubling)`,
-            line: { color: '#2563eb', width: 2.5 },
+            line: { color: '#457b9d', width: 2.5 },
             hovertemplate: trendX.map((date, i) =>
                 `Date: ${formatDate(date)}<br>` +
                 `Horizon: ${formatHours(trendY[i])}<br>` +
@@ -1793,7 +1794,7 @@
                 x: projX.concat([...projX].reverse()),
                 y: projUpper.concat([...projLower].reverse()),
                 fill: 'toself',
-                fillcolor: 'rgba(37, 99, 235, 0.15)',
+                fillcolor: 'rgba(69, 123, 157, 0.12)',
                 line: { color: 'transparent' },
                 type: 'scatter',
                 name: '95% Prediction Interval',
@@ -1808,8 +1809,8 @@
                 mode: 'lines',
                 type: 'scatter',
                 name: 'Projection',
-                line: { color: '#2563eb', width: 2, dash: 'dash' },
-                opacity: 0.7,
+                line: { color: '#457b9d', width: 2, dash: 'dash' },
+                opacity: 0.8,
                 hovertemplate: projX.map((date, i) =>
                     `Date: ${formatDate(date)}<br>` +
                     `Projected: ${formatHours(projY[i])}<br>` +
@@ -1863,7 +1864,7 @@
             mode: 'lines',
             type: 'scatter',
             name: 'Today',
-            line: { color: 'rgba(255, 0, 255, 0.4)', width: 2, dash: 'dot' },
+            line: { color: 'rgba(26, 26, 26, 0.35)', width: 1.5, dash: 'dot' },
             showlegend: false,
             hoverinfo: 'skip'
         });
@@ -1871,33 +1872,60 @@
         const layout = {
             title: {
                 text: 'AI Agent Time Horizons Over Time',
-                font: { size: 18 }
+                font: { size: 16, color: '#0f172a', family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                x: 0,
+                xanchor: 'left',
+                pad: { l: 8, t: 8 }
+            },
+            font: {
+                family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                color: '#1a1a1a'
             },
             xaxis: {
-                title: 'Model Release Date',
-                gridcolor: 'rgba(128,128,128,0.2)',
+                title: { text: 'Model Release Date', font: { size: 12, color: '#777' }, standoff: 8 },
+                gridcolor: '#f0f0f0',
+                linecolor: '#f0f0f0',
+                showline: false,
+                zeroline: false,
+                tickfont: { size: 11, color: '#777' },
+                ticks: 'outside',
+                tickcolor: '#f0f0f0',
                 range: [new Date(2019, 0, 1), new Date(endYear, 11, 31)]
             },
             yaxis: {
-                title: 'Time Horizon (human expert time)',
+                title: { text: 'Time Horizon (human expert time)', font: { size: 12, color: '#777' }, standoff: 8 },
                 type: 'log',
-                gridcolor: 'rgba(128,128,128,0.2)',
+                gridcolor: '#f0f0f0',
+                linecolor: '#f0f0f0',
+                showline: false,
+                zeroline: false,
+                tickfont: { size: 11, color: '#777' },
+                ticks: 'outside',
+                tickcolor: '#f0f0f0',
                 tickvals: [1/3600, 1/60, 1/6, 0.5, 1, 2, 4, 8, 24, 48, 168, 720],
                 ticktext: ['1s', '1m', '10m', '30m', '1h', '2h', '4h', '8h', '1d', '2d', '1w', '1mo']
             },
             legend: {
                 orientation: 'v',
                 x: 1.02,
-                y: 1
+                y: 1,
+                font: { size: 12, color: '#1a1a1a' },
+                bgcolor: 'rgba(0,0,0,0)',
+                bordercolor: 'transparent'
             },
             hovermode: 'closest',
+            hoverlabel: {
+                bgcolor: '#1a1a1a',
+                bordercolor: '#1a1a1a',
+                font: { color: '#fff', size: 12, family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }
+            },
             plot_bgcolor: 'white',
             paper_bgcolor: 'white',
-            margin: { r: 150, t: 60 },
+            margin: { r: 150, t: 60, b: 56, l: 70 },
             height: 550
         };
 
-        Plotly.newPlot('plot', traces, layout, { responsive: true });
+        Plotly.newPlot('plot', traces, layout, { responsive: true, displayModeBar: false });
     }
 
     // ============================================
