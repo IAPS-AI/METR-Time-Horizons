@@ -641,27 +641,52 @@
             <div id="milestoneResult" class="calc-result" style="display: none;"></div>
         </div>
 
-        <div class="calculator-section">
+        <div class="calculator-section gap-section">
             <h2>🔍 Performance Gap Analysis</h2>
             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
                 Compare performance between different model categories to understand accessibility gaps.
             </p>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
-                <div>
-                    <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">Comparison</span>
-                    <div class="tabs" style="margin-top: 0.25rem;">
-                        <button class="tab active" data-gap-tab="open_closed">Open vs Closed</button>
-                        <button class="tab" data-gap-tab="china_us">China vs US</button>
+            <div class="gap-controls">
+                <fieldset class="gap-toggle-field">
+                    <legend>Comparison</legend>
+                    <div class="gap-toggle-group">
+                        <input type="radio" name="gap-framing" id="gap-framing-oc" value="open_closed" checked>
+                        <label for="gap-framing-oc">Open vs Closed</label>
+                        <input type="radio" name="gap-framing" id="gap-framing-cu" value="china_us">
+                        <label for="gap-framing-cu">China vs US</label>
                     </div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">Gap Metric</span>
-                    <div class="tabs" style="margin-top: 0.25rem;">
-                        <button class="tab active" data-gap-metric="average">Average Gap</button>
-                        <button class="tab" data-gap-metric="current">Current Gap (Est.)</button>
+                </fieldset>
+
+                <fieldset class="gap-toggle-field">
+                    <legend>Success rate</legend>
+                    <div class="gap-toggle-group">
+                        <input type="radio" name="gap-success" id="gap-success-p80" value="p80" checked>
+                        <label for="gap-success-p80">80%</label>
+                        <input type="radio" name="gap-success" id="gap-success-p50" value="p50">
+                        <label for="gap-success-p50">50%</label>
                     </div>
-                </div>
+                </fieldset>
+
+                <fieldset class="gap-toggle-field">
+                    <legend>Scale</legend>
+                    <div class="gap-toggle-group">
+                        <input type="radio" name="gap-scale" id="gap-scale-linear" value="linear">
+                        <label for="gap-scale-linear">Linear</label>
+                        <input type="radio" name="gap-scale" id="gap-scale-log" value="log" checked>
+                        <label for="gap-scale-log">Log</label>
+                    </div>
+                </fieldset>
+
+                <fieldset class="gap-toggle-field">
+                    <legend>Gap metric</legend>
+                    <div class="gap-toggle-group">
+                        <input type="radio" name="gap-metric" id="gap-metric-avg" value="average" checked>
+                        <label for="gap-metric-avg">Average</label>
+                        <input type="radio" name="gap-metric" id="gap-metric-cur" value="current">
+                        <label for="gap-metric-cur">Current (Est.)</label>
+                    </div>
+                </fieldset>
             </div>
 
             <div class="stats-grid" style="margin-top: 1rem;">
@@ -2077,6 +2102,13 @@
 
     let currentGapFraming = 'open_closed';
     let currentGapMetric = 'average'; // 'average' or 'current'
+    let currentGapSuccess = 'p80';   // overrides global horizonType for the gap chart only
+    let currentGapScale = 'log';     // 'linear' | 'log'
+
+    function getGapData() {
+        if (!rawData) return [];
+        return parseYAMLData(rawData, currentGapSuccess);
+    }
 
     function createGapPlot(data, framing) {
         const isOpenClosed = framing === 'open_closed';
@@ -2462,7 +2494,7 @@
         updateModelCalc(allData, horizonType);
         updateMilestoneCalc(currentAnalysis, fitData);
         updateRawDataTable(allData);
-        updateGapAnalysis(allData);
+        updateGapAnalysis(getGapData());
     }
 
     async function updateDataFreshness() {
@@ -2565,29 +2597,42 @@
             }
         });
 
-        // Gap analysis tabs
-        document.querySelectorAll('[data-gap-tab]').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('[data-gap-tab]').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentGapFraming = tab.dataset.gapTab;
-                if (currentData) {
-                    updateGapAnalysis(currentData);
-                }
+        // Comparison framing
+        document.querySelectorAll('input[name="gap-framing"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                currentGapFraming = e.target.value;
+                if (rawData) updateGapAnalysis(getGapData());
             });
         });
 
-        // Gap metric toggle
-        document.querySelectorAll('[data-gap-metric]').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('[data-gap-metric]').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentGapMetric = tab.dataset.gapMetric;
-                if (currentData) {
-                    updateGapAnalysis(currentData);
-                }
+        // Success rate (per-section override of the global horizonType)
+        document.querySelectorAll('input[name="gap-success"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                currentGapSuccess = e.target.value;
+                if (rawData) updateGapAnalysis(getGapData());
             });
         });
+
+        // Scale
+        document.querySelectorAll('input[name="gap-scale"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                currentGapScale = e.target.value;
+                if (rawData) updateGapAnalysis(getGapData());
+            });
+        });
+
+        // Gap metric (average vs current)
+        document.querySelectorAll('input[name="gap-metric"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                currentGapMetric = e.target.value;
+                if (rawData) updateGapAnalysis(getGapData());
+            });
+        });
+
     });
     </script>
 </body>
