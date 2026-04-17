@@ -2252,16 +2252,18 @@
         const xMax = today;
         const x = d3.scaleTime().domain([xMin, xMax]).range([0, innerW]).nice();
 
-        // Y scale (horizon hours)
-        const allHorizons = [...leadingFrontier, ...laggingFrontier].map(d => d.horizon);
-        const yMaxData = d3.max(allHorizons);
-        const yMinData = d3.min(allHorizons);
+        // Y scale (horizon hours) — include CI extremes so whiskers fit the chart.
+        const yValues = [
+            ...leadingFrontier.flatMap(d => [d.horizon, d.ciLow, d.ciHigh]),
+            ...laggingFrontier.flatMap(d => [d.horizon, d.ciLow, d.ciHigh]),
+        ].filter(v => v != null && isFinite(v) && v > 0);
+        const yMinData = d3.min(yValues);
+        const yMaxData = d3.max(yValues);
         let y;
         if (scaleMode === 'log') {
             y = d3.scaleLog()
-                .domain([Math.max(yMinData * 0.5, 1e-3), yMaxData * 1.2])
-                .range([innerH, 0])
-                .clamp(true);
+                .domain([yMinData * 0.8, yMaxData * 1.2])
+                .range([innerH, 0]);
         } else {
             y = d3.scaleLinear()
                 .domain([0, yMaxData * 1.1])
@@ -2270,11 +2272,11 @@
         }
 
         // Y tick values: human-friendly horizons, kept only inside domain.
-        // Hours: 1s, 4s, 15s, 1m, 4m, 15m, 1h, 4h, 1d, 1w.
+        // Hours: 0.25s, 1s, 4s, 15s, 1m, 4m, 15m, 1h, 4h, 1d, 1w, 1mo.
         const HUMAN_TICKS_HOURS = [
-            1/3600, 4/3600, 15/3600,
+            0.25/3600, 1/3600, 4/3600, 15/3600,
             1/60, 4/60, 15/60,
-            1, 4, 24, 168,
+            1, 4, 24, 168, 720,
         ];
         const yDomain = y.domain();
         const yTickValues = scaleMode === 'log'
@@ -2370,17 +2372,15 @@
 
         // Confidence-interval whiskers per frontier model (drawn under dots).
         function drawCIs(frontier, color) {
-            const yLo = scaleMode === 'log' ? Math.max(yDomain[0], 1e-9) : 0;
             const cap = 4; // half-width of horizontal end caps in px
             const grp = g.append('g').attr('class', 'gap-ci');
             frontier.forEach(d => {
                 if (d.ciLow == null || d.ciHigh == null) return;
-                const lo = Math.max(d.ciLow, yLo);
-                const hi = Math.max(d.ciHigh, yLo);
-                if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+                if (!isFinite(d.ciLow) || !isFinite(d.ciHigh) || d.ciHigh <= d.ciLow) return;
+                if (d.ciLow <= 0) return; // log scale can't show 0/negative
                 const cx = x(d.date);
-                const yLoPx = y(lo);
-                const yHiPx = y(hi);
+                const yLoPx = y(d.ciLow);
+                const yHiPx = y(d.ciHigh);
                 grp.append('line')
                     .attr('x1', cx).attr('x2', cx)
                     .attr('y1', yLoPx).attr('y2', yHiPx)
