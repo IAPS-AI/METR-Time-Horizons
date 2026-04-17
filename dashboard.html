@@ -2368,6 +2368,42 @@
             .attr('stroke-width', 2.5)
             .attr('stroke-dasharray', '6 4');
 
+        // Confidence-interval whiskers per frontier model (drawn under dots).
+        function drawCIs(frontier, color) {
+            const yLo = scaleMode === 'log' ? Math.max(yDomain[0], 1e-9) : 0;
+            const cap = 4; // half-width of horizontal end caps in px
+            const grp = g.append('g').attr('class', 'gap-ci');
+            frontier.forEach(d => {
+                if (d.ciLow == null || d.ciHigh == null) return;
+                const lo = Math.max(d.ciLow, yLo);
+                const hi = Math.max(d.ciHigh, yLo);
+                if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+                const cx = x(d.date);
+                const yLoPx = y(lo);
+                const yHiPx = y(hi);
+                grp.append('line')
+                    .attr('x1', cx).attr('x2', cx)
+                    .attr('y1', yLoPx).attr('y2', yHiPx)
+                    .attr('stroke', color)
+                    .attr('stroke-width', 1.25)
+                    .attr('opacity', 0.5);
+                grp.append('line')
+                    .attr('x1', cx - cap).attr('x2', cx + cap)
+                    .attr('y1', yLoPx).attr('y2', yLoPx)
+                    .attr('stroke', color)
+                    .attr('stroke-width', 1.25)
+                    .attr('opacity', 0.5);
+                grp.append('line')
+                    .attr('x1', cx - cap).attr('x2', cx + cap)
+                    .attr('y1', yHiPx).attr('y2', yHiPx)
+                    .attr('stroke', color)
+                    .attr('stroke-width', 1.25)
+                    .attr('opacity', 0.5);
+            });
+        }
+        drawCIs(leadingFrontier, '#457b9d');
+        drawCIs(laggingFrontier, '#e63946');
+
         // Dots (frontier-advancing models only)
         function drawDots(frontier, color, hollow) {
             g.selectAll(null)
@@ -2393,10 +2429,14 @@
 
     function showGapTooltip(event, d, groupLabel) {
         const tt = document.getElementById('gapTooltip');
+        const ciLine = (d.ciLow != null && d.ciHigh != null)
+            ? `<div style="opacity:0.8;">95% CI: ${formatHours(d.ciLow)} – ${formatHours(d.ciHigh)}</div>`
+            : '';
         tt.innerHTML = `
             <div class="tt-title">${d.name}</div>
             <div>${groupLabel} · ${formatDate(d.date)}</div>
             <div>Horizon: ${formatHours(d.horizon)}</div>
+            ${ciLine}
         `;
         tt.style.opacity = 1;
         tt.style.left = (event.clientX + 12) + 'px';
