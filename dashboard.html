@@ -6,6 +6,7 @@
     <title>Measuring AI Ability to Complete Long Tasks | METR</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -295,6 +296,173 @@
 
         #rawDataBody tr:hover {
             background: #f8fafc;
+        }
+
+        /* ============ Gap section ============ */
+        .gap-section {
+            --gap-leading: #457b9d;
+            --gap-lagging: #e63946;
+            --gap-fill: rgba(230, 57, 70, 0.07);
+            --gap-stroke: rgba(230, 57, 70, 0.18);
+            --gap-grid: #f0f0f0;
+            --gap-axis: #777;
+            --gap-panel: #f3f3f3;
+            --gap-panel-hover: #eaeaea;
+            --gap-text: #1a1a1a;
+            --gap-muted: #666;
+            --gap-tooltip-bg: #1a1a1a;
+            --gap-tooltip-ink: #fff;
+            --gap-border: #e8e8e8;
+        }
+
+        .gap-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .gap-toggle-field {
+            border: 0;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .gap-toggle-field legend {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gap-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0;
+        }
+
+        .gap-toggle-group {
+            display: inline-flex;
+            background: var(--gap-panel);
+            border-radius: 7px;
+            padding: 3px;
+        }
+
+        .gap-toggle-group label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gap-muted);
+            padding: 5px 13px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+            user-select: none;
+        }
+
+        .gap-toggle-group input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .gap-toggle-group input:checked + label {
+            background: var(--gap-text);
+            color: #fff;
+        }
+
+        .gap-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--gap-text);
+            margin: 8px 0 6px;
+        }
+
+        .gap-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gap-legend-line {
+            width: 22px;
+            height: 0;
+            border-top-width: 2.5px;
+            border-top-style: solid;
+        }
+
+        .gap-legend-line.lagging {
+            border-top-style: dashed;
+        }
+
+        .gap-legend-swatch {
+            width: 14px;
+            height: 14px;
+            background: var(--gap-fill);
+            border: 1px solid var(--gap-stroke);
+            border-radius: 2px;
+        }
+
+        .gap-chart-container {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .gap-chart-container svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gap-chart-container .domain {
+            display: none;
+        }
+
+        .gap-chart-container .grid line {
+            stroke: var(--gap-grid);
+            shape-rendering: crispEdges;
+        }
+
+        .gap-chart-container .tick text {
+            fill: var(--gap-axis);
+            font-size: 11px;
+        }
+
+        .gap-chart-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--gap-muted);
+            font-size: 13px;
+        }
+
+        .gap-tooltip {
+            position: fixed;
+            background: var(--gap-tooltip-bg);
+            color: var(--gap-tooltip-ink);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 9999;
+            max-width: 240px;
+            line-height: 1.45;
+        }
+
+        .gap-tooltip .tt-title {
+            font-weight: 700;
+            margin-bottom: 2px;
         }
     </style>
 </head>
