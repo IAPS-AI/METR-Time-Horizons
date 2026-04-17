@@ -2187,6 +2187,18 @@
                 .nice();
         }
 
+        // Y tick values: human-friendly horizons, kept only inside domain.
+        // Hours: 1s, 4s, 15s, 1m, 4m, 15m, 1h, 4h, 1d, 1w.
+        const HUMAN_TICKS_HOURS = [
+            1/3600, 4/3600, 15/3600,
+            1/60, 4/60, 15/60,
+            1, 4, 24, 168,
+        ];
+        const yDomain = y.domain();
+        const yTickValues = scaleMode === 'log'
+            ? HUMAN_TICKS_HOURS.filter(v => v >= yDomain[0] && v <= yDomain[1])
+            : null; // linear: let D3 choose, capped at 6
+
         // Grid
         g.append('g')
             .attr('class', 'grid')
@@ -2194,7 +2206,11 @@
             .call(d3.axisBottom(x).ticks(6).tickSize(-innerH).tickFormat(''));
         g.append('g')
             .attr('class', 'grid')
-            .call(d3.axisLeft(y).ticks(6).tickSize(-innerW).tickFormat(''));
+            .call(
+                yTickValues
+                    ? d3.axisLeft(y).tickValues(yTickValues).tickSize(-innerW).tickFormat('')
+                    : d3.axisLeft(y).ticks(6).tickSize(-innerW).tickFormat('')
+            );
 
         // Axes
         g.append('g')
@@ -2202,7 +2218,11 @@
             .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat('%b %Y')));
 
         const yTickFormat = (v) => formatHours(v);
-        g.append('g').call(d3.axisLeft(y).ticks(6).tickFormat(yTickFormat));
+        g.append('g').call(
+            yTickValues
+                ? d3.axisLeft(y).tickValues(yTickValues).tickFormat(yTickFormat)
+                : d3.axisLeft(y).ticks(6).tickFormat(yTickFormat)
+        );
 
         // Step series extended to today at last horizon
         function extendToToday(frontier) {
