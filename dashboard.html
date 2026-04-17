@@ -46,9 +46,10 @@
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 16px;
+            align-items: flex-end;
             margin-bottom: 1.5rem;
-            padding: 1rem;
+            padding: 16px 20px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -61,21 +62,23 @@
         }
 
         .control-group label {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.025em;
+            letter-spacing: 0.5px;
         }
 
         .control-group select,
         .control-group input {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 0.9rem;
-            background: white;
+            font-size: 13px;
+            background: #fff;
             min-width: 140px;
+            color: var(--ink);
+            font-family: inherit;
         }
 
         .control-group input[type="number"] {
@@ -85,8 +88,8 @@
         .control-group select:focus,
         .control-group input:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.15);
         }
 
         .checkbox-group {
@@ -129,11 +132,11 @@
         }
 
         .stat-card h3 {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.025em;
+            letter-spacing: 0.5px;
             margin-bottom: 0.5rem;
         }
 
@@ -231,29 +234,34 @@
         }
 
         .tabs {
-            display: flex;
-            gap: 0.5rem;
+            display: inline-flex;
+            background: var(--panel);
+            border-radius: 7px;
+            padding: 3px;
             margin-bottom: 1rem;
+            gap: 0;
         }
 
         .tab {
-            padding: 0.5rem 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            background: white;
+            padding: 5px 13px;
+            border: none;
+            border-radius: 5px;
+            background: transparent;
             cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.15s;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            font-family: inherit;
+            transition: background-color 0.15s, color 0.15s;
         }
 
         .tab:hover {
-            background: #f8fafc;
+            color: var(--ink);
         }
 
         .tab.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
+            background: var(--ink);
+            color: #fff;
         }
 
         .tab-content {
@@ -286,7 +294,7 @@
         }
 
         footer a {
-            color: #3b82f6;
+            color: var(--primary);
             text-decoration: none;
         }
 
@@ -298,24 +306,32 @@
             background: #f8fafc;
         }
 
-        /* ============ Gap section ============ */
+        /* ============ Shared design tokens & pill controls ============ */
+        :root {
+            --ink: #1a1a1a;
+            --muted: #666;
+            --panel: #f3f3f3;
+            --panel-hover: #eaeaea;
+            --border: #e8e8e8;
+            --primary: #457b9d;
+            --accent: #e63946;
+        }
+
+        /* Section-specific gap chart tokens */
         .gap-section {
-            --gap-leading: #457b9d;
-            --gap-lagging: #e63946;
+            --gap-leading: var(--primary);
+            --gap-lagging: var(--accent);
             --gap-fill: rgba(230, 57, 70, 0.07);
             --gap-stroke: rgba(230, 57, 70, 0.18);
             --gap-grid: #f0f0f0;
             --gap-axis: #777;
-            --gap-panel: #f3f3f3;
-            --gap-panel-hover: #eaeaea;
-            --gap-text: #1a1a1a;
-            --gap-muted: #666;
-            --gap-tooltip-bg: #1a1a1a;
+            --gap-tooltip-bg: var(--ink);
             --gap-tooltip-ink: #fff;
-            --gap-border: #e8e8e8;
         }
 
-        .gap-controls {
+        /* Pill control row (used in gap section and elsewhere) */
+        .gap-controls,
+        .pill-row {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
@@ -323,7 +339,8 @@
             margin-bottom: 12px;
         }
 
-        .gap-toggle-field {
+        .gap-toggle-field,
+        .pill-field {
             border: 0;
             padding: 0;
             margin: 0;
@@ -332,29 +349,33 @@
             gap: 4px;
         }
 
-        .gap-toggle-field legend {
+        .gap-toggle-field legend,
+        .pill-field legend,
+        .pill-field-label {
             font-size: 11px;
             font-weight: 600;
-            color: var(--gap-muted);
+            color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 0;
         }
 
-        .gap-toggle-group {
+        .gap-toggle-group,
+        .pill-group {
             display: inline-flex;
-            background: var(--gap-panel);
+            background: var(--panel);
             border-radius: 7px;
             padding: 3px;
         }
 
-        .gap-toggle-group label {
+        .gap-toggle-group label,
+        .pill-group label {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 600;
-            color: var(--gap-muted);
+            color: var(--muted);
             padding: 5px 13px;
             border-radius: 5px;
             cursor: pointer;
@@ -362,16 +383,72 @@
             user-select: none;
         }
 
-        .gap-toggle-group input {
+        .gap-toggle-group input,
+        .pill-group input {
             position: absolute;
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        .gap-toggle-group input:checked + label {
-            background: var(--gap-text);
+        .gap-toggle-group input:checked + label,
+        .pill-group input:checked + label {
+            background: var(--ink);
             color: #fff;
+        }
+
+        /* Standalone toggle chip (single on/off) */
+        .pill-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--panel);
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, color 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .pill-chip input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pill-chip:has(input:checked) {
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .pill-chip:focus-within {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Slim select / input styling shared across the dashboard */
+        .pill-select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 6px 28px 6px 12px;
+            background: var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23666' d='M0 0l5 6 5-6z'/></svg>") no-repeat right 10px center;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            min-width: 90px;
+            font-family: inherit;
+        }
+
+        .pill-select:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
 
         .gap-legend {
@@ -474,17 +551,19 @@
         </header>
 
         <div class="controls">
-            <div class="control-group">
-                <label>Success Rate Threshold</label>
-                <select id="horizonType">
-                    <option value="p50">50% Success Rate</option>
-                    <option value="p80">80% Success Rate</option>
-                </select>
-            </div>
+            <fieldset class="pill-field">
+                <legend>Success rate</legend>
+                <div class="pill-group">
+                    <input type="radio" name="horizonType" id="horizonType-p50" value="p50" checked>
+                    <label for="horizonType-p50">50%</label>
+                    <input type="radio" name="horizonType" id="horizonType-p80" value="p80">
+                    <label for="horizonType-p80">80%</label>
+                </div>
+            </fieldset>
 
-            <div class="control-group">
-                <label>Fit Data From</label>
-                <select id="fitStartDate">
+            <div class="pill-field">
+                <span class="pill-field-label">Fit data from</span>
+                <select id="fitStartDate" class="pill-select">
                     <option value="2019-01-01">2019</option>
                     <option value="2020-01-01">2020</option>
                     <option value="2021-01-01">2021</option>
@@ -493,9 +572,9 @@
                 </select>
             </div>
 
-            <div class="control-group">
-                <label>Project Until</label>
-                <select id="endYear">
+            <div class="pill-field">
+                <span class="pill-field-label">Project until</span>
+                <select id="endYear" class="pill-select">
                     <option value="2026">2026</option>
                     <option value="2027">2027</option>
                     <option value="2028" selected>2028</option>
@@ -504,20 +583,23 @@
                 </select>
             </div>
 
-            <div class="checkbox-group">
-                <input type="checkbox" id="showCI" checked>
-                <label for="showCI">Show confidence intervals</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="showProjection" checked>
-                <label for="showProjection">Show projection</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="showBootstrap" checked>
-                <label for="showBootstrap">Bootstrap uncertainty</label>
-            </div>
+            <fieldset class="pill-field">
+                <legend>Display</legend>
+                <div style="display: inline-flex; gap: 6px; flex-wrap: wrap;">
+                    <label class="pill-chip">
+                        <input type="checkbox" id="showCI" checked>
+                        Confidence intervals
+                    </label>
+                    <label class="pill-chip">
+                        <input type="checkbox" id="showProjection" checked>
+                        Projection
+                    </label>
+                    <label class="pill-chip">
+                        <input type="checkbox" id="showBootstrap" checked>
+                        Bootstrap uncertainty
+                    </label>
+                </div>
+            </fieldset>
         </div>
 
         <div id="plot">
@@ -2548,7 +2630,7 @@
         // Clear loading message
         document.getElementById('plot').innerHTML = '';
 
-        const horizonType = document.getElementById('horizonType').value;
+        const horizonType = (document.querySelector('input[name="horizonType"]:checked')?.value || 'p50');
         const fitStartDate = new Date(document.getElementById('fitStartDate').value);
         const endYear = parseInt(document.getElementById('endYear').value);
         const showCI = document.getElementById('showCI').checked;
@@ -2649,8 +2731,11 @@
         updateDataFreshness();
 
         // Control changes
-        ['horizonType', 'fitStartDate', 'endYear', 'showCI', 'showProjection', 'showBootstrap'].forEach(id => {
+        ['fitStartDate', 'endYear', 'showCI', 'showProjection', 'showBootstrap'].forEach(id => {
             document.getElementById(id).addEventListener('change', refresh);
+        });
+        document.querySelectorAll('input[name="horizonType"]').forEach(input => {
+            input.addEventListener('change', (e) => { if (e.target.checked) refresh(); });
         });
 
         // Custom scenarios (debounced)
@@ -2675,7 +2760,7 @@
         // Model calculator
         ['model1', 'model2'].forEach(id => {
             document.getElementById(id).addEventListener('change', () => {
-                updateModelCalc(currentData, document.getElementById('horizonType').value);
+                updateModelCalc(currentData, (document.querySelector('input[name="horizonType"]:checked')?.value || 'p50'));
             });
         });
 
