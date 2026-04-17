@@ -122,59 +122,43 @@ function getModelCountry(modelId, family) {
 // Gap calculation functions
 const DAYS_PER_MONTH = 30.5;
 
-function getFrontierModels(data, groupFn) {
-    const groups = {};
-    data.forEach(d => {
-        const group = groupFn(d);
-        if (!groups[group]) groups[group] = [];
-        groups[group].push(d);
-    });
-
-    const frontierModels = [];
-    for (const [group, models] of Object.entries(groups)) {
-        const sorted = [...models].sort((a, b) => a.date - b.date);
-        let maxHorizon = 0;
-        for (const model of sorted) {
-            if (model.horizon >= maxHorizon) {
-                maxHorizon = model.horizon;
-                frontierModels.push(model);
-            }
+function frontierFor(groupMembers) {
+    const sorted = [...groupMembers].sort((a, b) => a.date - b.date);
+    const out = [];
+    let maxH = 0;
+    for (const m of sorted) {
+        if (m.horizon > maxH) {
+            maxH = m.horizon;
+            out.push(m);
         }
     }
-
-    return frontierModels.sort((a, b) => a.date - b.date);
+    return out;
 }
 
 function calculateHorizontalGaps(data, groupKey, leadingValue) {
     const leadingData = data.filter(d => d[groupKey] === leadingValue);
     const laggingData = data.filter(d => d[groupKey] !== leadingValue);
 
-    const leadingFrontier = getFrontierModels(leadingData, d => d.family);
-    const laggingFrontier = getFrontierModels(laggingData, d => d.family);
+    const leadingFrontier = frontierFor(leadingData);
+    const laggingFrontier = frontierFor(laggingData);
 
     const gaps = [];
 
     for (const leading of leadingFrontier) {
-        let matchingLagging = null;
-        for (const lagging of laggingFrontier) {
-            if (lagging.date <= leading.date) continue;
-            if (lagging.horizon >= leading.horizon) {
-                matchingLagging = lagging;
-                break;
-            }
-        }
+        const crossing = laggingFrontier.find(l => l.horizon >= leading.horizon) || null;
 
-        if (matchingLagging) {
-            const gapDays = (matchingLagging.date - leading.date) / (1000 * 60 * 60 * 24);
+        if (crossing) {
+            const gapDays = (crossing.date - leading.date) / (1000 * 60 * 60 * 24);
+            const gapMonths = Math.max(0, gapDays / DAYS_PER_MONTH);
             gaps.push({
                 leadingModel: leading.name,
                 leadingDate: leading.date,
                 leadingHorizon: leading.horizon,
-                laggingModel: matchingLagging.name,
-                laggingDate: matchingLagging.date,
-                laggingHorizon: matchingLagging.horizon,
-                gapMonths: gapDays / DAYS_PER_MONTH,
-                matched: true
+                laggingModel: crossing.name,
+                laggingDate: crossing.date,
+                laggingHorizon: crossing.horizon,
+                gapMonths,
+                matched: true,
             });
         } else {
             const gapDays = (new Date() - leading.date) / (1000 * 60 * 60 * 24);
@@ -186,7 +170,7 @@ function calculateHorizontalGaps(data, groupKey, leadingValue) {
                 laggingDate: null,
                 laggingHorizon: null,
                 gapMonths: gapDays / DAYS_PER_MONTH,
-                matched: false
+                matched: false,
             });
         }
     }
@@ -465,65 +449,82 @@ assert(getModelCountry('kimi_k2', 'Moonshot') === 'China', 'Moonshot → China')
 assert(getModelCountry('mistral_large', 'Mistral') === 'EU', 'Mistral → EU');
 assert(getModelCountry('unknown', 'Other') === 'Other', 'Other → Other');
 
-// Test getFrontierModels
-console.log('\n6. getFrontierModels');
-console.log('--------------------');
+// Test frontierFor
+console.log('\n6. frontierFor');
+console.log('--------------');
 
 const testModels = [
     { name: 'A', family: 'F1', date: new Date('2023-01-01'), horizon: 1 },
     { name: 'B', family: 'F1', date: new Date('2023-06-01'), horizon: 2 },
-    { name: 'C', family: 'F1', date: new Date('2023-12-01'), horizon: 1.5 },  // Not frontier (< B)
+    { name: 'C', family: 'F1', date: new Date('2023-12-01'), horizon: 1.5 },  // not frontier (< B)
     { name: 'D', family: 'F1', date: new Date('2024-06-01'), horizon: 3 },
-    { name: 'E', family: 'F2', date: new Date('2023-03-01'), horizon: 0.5 },
-    { name: 'F', family: 'F2', date: new Date('2023-09-01'), horizon: 1 },
+    { name: 'E', family: 'F2', date: new Date('2023-03-01'), horizon: 0.5 },   // below current global max → not frontier
+    { name: 'F', family: 'F2', date: new Date('2023-09-01'), horizon: 1 },     // below current global max → not frontier
 ];
 
-const frontier = getFrontierModels(testModels, d => d.family);
+const frontier = frontierFor(testModels);
 const frontierNames = frontier.map(m => m.name);
 
-assert(frontierNames.includes('A'), 'A is frontier (first in F1)');
+assert(frontierNames.includes('A'), 'A is frontier (first model)');
 assert(frontierNames.includes('B'), 'B is frontier (improves on A)');
-assert(!frontierNames.includes('C'), 'C is NOT frontier (lower than B)');
+assert(!frontierNames.includes('C'), 'C is NOT frontier (1.5 < 2)');
 assert(frontierNames.includes('D'), 'D is frontier (improves on B)');
-assert(frontierNames.includes('E'), 'E is frontier (first in F2)');
-assert(frontierNames.includes('F'), 'F is frontier (improves on E)');
-assert(frontier.length === 5, 'Total 5 frontier models');
+assert(!frontierNames.includes('E'), 'E is NOT frontier (0.5 < 1)');
+assert(!frontierNames.includes('F'), 'F is NOT frontier (1 < 2 at its time)');
+assert(frontier.length === 3, 'Total 3 global frontier models');
+
+// Tie handling: equal horizon does not duplicate
+const tieModels = [
+    { name: 'X', family: 'F1', date: new Date('2023-01-01'), horizon: 1 },
+    { name: 'Y', family: 'F1', date: new Date('2023-02-01'), horizon: 1 },  // tie
+];
+const tieFrontier = frontierFor(tieModels);
+assert(tieFrontier.length === 1, 'Tied horizon does not push duplicate frontier');
+assert(tieFrontier[0].name === 'X', 'First-released wins on tie');
 
 // Test calculateHorizontalGaps
 console.log('\n7. calculateHorizontalGaps');
 console.log('--------------------------');
 
 const gapTestData = [
-    // Closed models (leading)
+    // Closed (leading)
     { name: 'Closed1', family: 'Anthropic', date: new Date('2023-01-01'), horizon: 1, isOpen: false },
     { name: 'Closed2', family: 'Anthropic', date: new Date('2023-06-01'), horizon: 2, isOpen: false },
-    { name: 'Closed3', family: 'OpenAI', date: new Date('2024-01-01'), horizon: 4, isOpen: false },
-    // Open models (lagging)
-    { name: 'Open1', family: 'DeepSeek', date: new Date('2023-03-01'), horizon: 0.5, isOpen: true },
-    { name: 'Open2', family: 'DeepSeek', date: new Date('2023-09-01'), horizon: 1.5, isOpen: true },
-    { name: 'Open3', family: 'Alibaba', date: new Date('2024-03-01'), horizon: 2.5, isOpen: true },
+    { name: 'Closed3', family: 'OpenAI',    date: new Date('2024-01-01'), horizon: 4, isOpen: false },
+    // Open (lagging)
+    { name: 'Open1',   family: 'DeepSeek',  date: new Date('2023-03-01'), horizon: 0.5, isOpen: true },
+    { name: 'Open2',   family: 'DeepSeek',  date: new Date('2023-09-01'), horizon: 1.5, isOpen: true },
+    { name: 'Open3',   family: 'Alibaba',   date: new Date('2024-03-01'), horizon: 2.5, isOpen: true },
 ];
 
 const gaps = calculateHorizontalGaps(gapTestData, 'isOpen', false);
 
-assert(gaps.length > 0, 'Gaps calculated');
-const closed1Gap = gaps.find(g => g.leadingModel === 'Closed1');
-assert(closed1Gap !== undefined, 'Found gap for Closed1');
-if (closed1Gap) {
-    assert(closed1Gap.matched === true, 'Closed1 is matched');
-    assert(closed1Gap.laggingModel === 'Open2', 'Closed1 matched by Open2 (first to reach horizon 1)');
-    // Gap should be ~8 months (Jan to Sep 2023)
-    assertApprox(closed1Gap.gapMonths, 8, 1, 'Closed1 gap ≈ 8 months');
-}
+// Leading frontier (global cumulative max in closed group): Closed1 (1), Closed2 (2), Closed3 (4).
+// Lagging frontier (global cumulative max in open group):  Open1 (0.5), Open2 (1.5), Open3 (2.5).
+assert(gaps.length === 3, 'One gap per leading frontier model');
 
-const closed2Gap = gaps.find(g => g.leadingModel === 'Closed2');
-assert(closed2Gap !== undefined, 'Found gap for Closed2');
-if (closed2Gap) {
-    assert(closed2Gap.matched === true, 'Closed2 is matched');
-    assert(closed2Gap.laggingModel === 'Open3', 'Closed2 matched by Open3');
-    // Gap should be ~9 months (Jun 2023 to Mar 2024)
-    assertApprox(closed2Gap.gapMonths, 9, 1, 'Closed2 gap ≈ 9 months');
-}
+const closed1 = gaps.find(g => g.leadingModel === 'Closed1');
+assert(closed1.matched === true, 'Closed1 matched');
+assert(closed1.laggingModel === 'Open2', 'Closed1 matched by Open2 (first open ≥ 1)');
+assertApprox(closed1.gapMonths, 8, 1, 'Closed1 gap ≈ 8 months');
+
+const closed2 = gaps.find(g => g.leadingModel === 'Closed2');
+assert(closed2.matched === true, 'Closed2 matched');
+assert(closed2.laggingModel === 'Open3', 'Closed2 matched by Open3 (first open ≥ 2)');
+assertApprox(closed2.gapMonths, 9, 1, 'Closed2 gap ≈ 9 months');
+
+const closed3 = gaps.find(g => g.leadingModel === 'Closed3');
+assert(closed3.matched === false, 'Closed3 unmatched (no open ≥ 4)');
+assert(closed3.laggingModel === null, 'Closed3 has no lagging model');
+
+// Backward-match case: lagging side already ahead at leading-release time → gap = 0.
+const backwardData = [
+    { name: 'L1', family: 'F1', date: new Date('2024-06-01'), horizon: 1, isOpen: false },
+    { name: 'O1', family: 'F2', date: new Date('2024-01-01'), horizon: 5, isOpen: true },
+];
+const backGaps = calculateHorizontalGaps(backwardData, 'isOpen', false);
+assert(backGaps[0].matched === true, 'Backward case is matched, not unmatched');
+assertApprox(backGaps[0].gapMonths, 0, 0.001, 'Backward case clamped to 0');
 
 // Test calculateGapStatistics
 console.log('\n8. calculateGapStatistics');
@@ -629,7 +630,7 @@ assert(emptyStats.avgGapMonths === null, 'Empty gaps: avg = null');
 
 // Single model
 const singleModel = [{ name: 'Only', family: 'F1', date: new Date(), horizon: 1 }];
-const singleFrontier = getFrontierModels(singleModel, d => d.family);
+const singleFrontier = frontierFor(singleModel);
 assert(singleFrontier.length === 1, 'Single model is frontier');
 
 // Very large gap values
