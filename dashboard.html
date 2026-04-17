@@ -1075,65 +1075,53 @@
     const DAYS_PER_MONTH = 30.5;
 
     /**
-     * Get frontier models for a group (cumulative max horizon over time)
+     * Cumulative-max frontier over a flat group (no inner sub-grouping).
+     * Returns models in date order whose horizon strictly exceeds the running max.
      */
-    function getFrontierModels(data, groupFn) {
-        const groups = {};
-        data.forEach(d => {
-            const group = groupFn(d);
-            if (!groups[group]) groups[group] = [];
-            groups[group].push(d);
-        });
-
-        const frontierModels = [];
-        for (const [group, models] of Object.entries(groups)) {
-            const sorted = [...models].sort((a, b) => a.date - b.date);
-            let maxHorizon = 0;
-            for (const model of sorted) {
-                if (model.horizon >= maxHorizon) {
-                    maxHorizon = model.horizon;
-                    frontierModels.push(model);
-                }
+    function frontierFor(groupMembers) {
+        const sorted = [...groupMembers].sort((a, b) => a.date - b.date);
+        const out = [];
+        let maxH = 0;
+        for (const m of sorted) {
+            if (m.horizon > maxH) {
+                maxH = m.horizon;
+                out.push(m);
             }
         }
-
-        return frontierModels.sort((a, b) => a.date - b.date);
+        return out;
     }
 
     /**
-     * Calculate horizontal gaps between leading and lagging groups
+     * Calculate horizontal gaps between leading and lagging groups.
+     * For each leading-frontier model, finds the first lagging-frontier model
+     * (regardless of date) whose horizon meets or exceeds it. If the lagging
+     * crossing date precedes the leading-release date (lagging was already
+     * ahead), the gap is clamped to 0 rather than treated as unmatched.
      */
     function calculateHorizontalGaps(data, groupKey, leadingValue) {
         const leadingData = data.filter(d => d[groupKey] === leadingValue);
         const laggingData = data.filter(d => d[groupKey] !== leadingValue);
 
-        const leadingFrontier = getFrontierModels(leadingData, d => d.family);
-        const laggingFrontier = getFrontierModels(laggingData, d => d.family);
+        const leadingFrontier = frontierFor(leadingData);
+        const laggingFrontier = frontierFor(laggingData);
 
         const gaps = [];
 
         for (const leading of leadingFrontier) {
-            // Find first lagging model released AFTER leading that matches horizon
-            let matchingLagging = null;
-            for (const lagging of laggingFrontier) {
-                if (lagging.date <= leading.date) continue;
-                if (lagging.horizon >= leading.horizon) {
-                    matchingLagging = lagging;
-                    break;
-                }
-            }
+            const crossing = laggingFrontier.find(l => l.horizon >= leading.horizon) || null;
 
-            if (matchingLagging) {
-                const gapDays = (matchingLagging.date - leading.date) / (1000 * 60 * 60 * 24);
+            if (crossing) {
+                const gapDays = (crossing.date - leading.date) / (1000 * 60 * 60 * 24);
+                const gapMonths = Math.max(0, gapDays / DAYS_PER_MONTH);
                 gaps.push({
                     leadingModel: leading.name,
                     leadingDate: leading.date,
                     leadingHorizon: leading.horizon,
-                    laggingModel: matchingLagging.name,
-                    laggingDate: matchingLagging.date,
-                    laggingHorizon: matchingLagging.horizon,
-                    gapMonths: gapDays / DAYS_PER_MONTH,
-                    matched: true
+                    laggingModel: crossing.name,
+                    laggingDate: crossing.date,
+                    laggingHorizon: crossing.horizon,
+                    gapMonths,
+                    matched: true,
                 });
             } else {
                 const gapDays = (new Date() - leading.date) / (1000 * 60 * 60 * 24);
@@ -1145,7 +1133,7 @@
                     laggingDate: null,
                     laggingHorizon: null,
                     gapMonths: gapDays / DAYS_PER_MONTH,
-                    matched: false
+                    matched: false,
                 });
             }
         }
@@ -1190,7 +1178,7 @@
     function calculateGroupTrend(data) {
         if (data.length < 2) return null;
 
-        const frontier = getFrontierModels(data, d => d.family);
+        const frontier = frontierFor(data);
         if (frontier.length < 2) return null;
 
         const x = frontier.map(d => d.dateNum);
@@ -1935,8 +1923,8 @@
         const leadingData = data.filter(d => d[groupKey] === leadingValue);
         const laggingData = data.filter(d => d[groupKey] !== leadingValue);
 
-        const leadingFrontier = getFrontierModels(leadingData, d => d.family);
-        const laggingFrontier = getFrontierModels(laggingData, d => d.family);
+        const leadingFrontier = frontierFor(leadingData);
+        const laggingFrontier = frontierFor(laggingData);
 
         const traces = [];
 
